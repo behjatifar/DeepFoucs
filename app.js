@@ -296,21 +296,53 @@ const updateItemDetails = (list, id, newText, newAllocatedMinutes = null, parent
     });
 
 // Pure function to increment spentMinutes on an active task or subtask immutably
+// Pure function to increment spentMinutes and auto-complete task/subtask when allocated time is reached
 const incrementTaskSpentMinutes = (list, targetId, minutesToAdd) =>
     list.map(item => {
+        const now = Date.now();
+
+        // 1. Direct match on a top-level task or folder
         if (item.id === targetId) {
-            return { ...item, spentMinutes: (Number(item.spentMinutes) || 0) + minutesToAdd };
-        }
-        if (Array.isArray(item.subtasks) && item.subtasks.some(s => s.id === targetId)) {
+            const nextSpent = (Number(item.spentMinutes) || 0) + minutesToAdd;
+            const allocated = Number(item.allocatedMinutes) || 0;
+            const reachedGoal = allocated > 0 && nextSpent >= allocated;
+            const nextCompleted = Boolean(item.completed || reachedGoal);
+
             return {
                 ...item,
-                subtasks: item.subtasks.map(sub =>
-                    sub.id === targetId
-                        ? { ...sub, spentMinutes: (Number(sub.spentMinutes) || 0) + minutesToAdd }
-                        : sub
-                )
+                spentMinutes: nextSpent,
+                completed: nextCompleted,
+                completedAt: nextCompleted ? (item.completedAt || now) : null
             };
         }
+
+        // 2. Match on a subtask inside a folder
+        if (Array.isArray(item.subtasks) && item.subtasks.some(s => s.id === targetId)) {
+            const updatedSubtasks = item.subtasks.map(sub => {
+                if (sub.id !== targetId) return sub;
+                const nextSpent = (Number(sub.spentMinutes) || 0) + minutesToAdd;
+                const allocated = Number(sub.allocatedMinutes) || 0;
+                const reachedGoal = allocated > 0 && nextSpent >= allocated;
+                const nextCompleted = Boolean(sub.completed || reachedGoal);
+
+                return {
+                    ...sub,
+                    spentMinutes: nextSpent,
+                    completed: nextCompleted,
+                    completedAt: nextCompleted ? (sub.completedAt || now) : null
+                };
+            });
+
+            // Auto-complete parent folder if all its subtasks are now completed
+            const allSubsDone = updatedSubtasks.length > 0 && updatedSubtasks.every(s => s.completed);
+            return {
+                ...item,
+                subtasks: updatedSubtasks,
+                completed: allSubsDone,
+                completedAt: allSubsDone ? (item.completedAt || now) : null
+            };
+        }
+
         return item;
     });
 
@@ -476,6 +508,7 @@ const renderActiveTaskBanner = () => {
     }
 };
 
+// Record real-time elapsed work minutes onto the active task & auto-complete if goal reached
 const syncRealTimeElapsedMinutes = (currentRemainingSeconds) => {
     if (currentTimer.mode !== 'work') return;
 
@@ -487,7 +520,8 @@ const syncRealTimeElapsedMinutes = (currentRemainingSeconds) => {
         appState.stats.totalFocusedMinutes = (appState.stats.totalFocusedMinutes || 0) + newlyCompletedMinutes;
 
         if (appState.activeTaskId) {
-            appState.works = incrementTaskSpentMinutes(appState.works, appState.activeTaskId, newlyCompletedMinutes);
+            const updatedWorks = incrementTaskSpentMinutes(appState.works, appState.activeTaskId, newlyCompletedMinutes);
+            appState.works = applyCollectionRules('works', updatedWorks);
         }
 
         persistState();

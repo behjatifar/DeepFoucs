@@ -5,6 +5,7 @@
     --text-muted: #9ca3af;
     --accent-blue: #3b82f6;
     --accent-purple: #8b5cf6;
+    --success-green: #10b981;
     --glass-bg: rgba(255, 255, 255, 0.03);
     --glass-border: rgba(255, 255, 255, 0.08);
     --font-family: system-ui, -apple-system, sans-serif;
@@ -61,7 +62,7 @@ body.rest-mode .glow-purple { background: radial-gradient(circle, rgba(168,85,24
     gap: 24px;
 }
 
-.sidebar { width: 350px; display: flex; flex-direction: column; }
+.sidebar { width: 400px; display: flex; flex-direction: column; }
 
 /* --- UI Components --- */
 .glass-panel {
@@ -74,6 +75,8 @@ body.rest-mode .glow-purple { background: radial-gradient(circle, rgba(168,85,24
 
 h2, h3 { margin-bottom: 16px; font-weight: 500; }
 
+.hidden { display: none !important; }
+
 /* --- Timer Centerpiece --- */
 .timer-section {
     flex: 1;
@@ -83,20 +86,77 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
     justify-content: center;
 }
 
-.timer-header { width: 100%; display: flex; justify-content: space-between; margin-bottom: 30px; }
+.timer-header { width: 100%; display: flex; justify-content: space-between; margin-bottom: 16px; }
 .stats { color: var(--accent-purple); font-size: 0.9rem; }
 
+/* Active Task Banner on Timer */
+.active-task-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    padding: 8px 16px;
+    border-radius: 999px;
+    margin-bottom: 22px;
+    max-width: 90%;
+    font-size: 0.85rem;
+    transition: all 0.25s ease;
+}
+
+.active-task-banner.has-active {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+.active-task-label {
+    color: var(--text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.active-task-name {
+    color: var(--text-main);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 240px;
+}
+
+.active-task-time {
+    background: rgba(139, 92, 246, 0.2);
+    color: #c4b5fd;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.active-task-clear {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 2px;
+}
+.active-task-clear:hover { color: #ef4444; }
+
 .timer-circle {
-    width: 300px; height: 300px;
+    width: 290px; height: 290px;
     border-radius: 50%;
     background: conic-gradient(var(--accent-blue) 0deg, rgba(255,255,255,0.05) 0deg);
     display: flex; align-items: center; justify-content: center;
-    margin-bottom: 30px;
+    margin-bottom: 26px;
     transition: background 0.2s linear;
 }
 
 .timer-inner {
-    width: 280px; height: 280px;
+    width: 270px; height: 270px;
     background: var(--bg-dark);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
@@ -104,7 +164,7 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
 
 .time-text { font-size: 4rem; font-weight: 700; letter-spacing: 2px; }
 
-.timer-controls { display: flex; gap: 12px; margin-bottom: 20px; }
+.timer-controls { display: flex; gap: 12px; margin-bottom: 18px; }
 .timer-settings { display: flex; gap: 16px; color: var(--text-muted); font-size: 0.85rem; }
 .timer-settings input { 
     width: 50px; background: transparent; border: 1px solid var(--glass-border); 
@@ -121,44 +181,443 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
 .btn.secondary { background: var(--glass-bg); color: white; border: 1px solid var(--glass-border); }
 .btn.secondary:hover { background: rgba(255,255,255,0.1); }
 
-.input-group { display: flex; gap: 8px; margin-bottom: 16px; }
-.input-group input {
-    flex: 1; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--glass-border);
+.input-group { display: flex; gap: 8px; margin-bottom: 14px; }
+.input-group input[type="text"] {
+    flex: 1; min-width: 0; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--glass-border);
     background: rgba(0,0,0,0.2); color: white; outline: none;
 }
 .input-group input:focus { border-color: var(--accent-purple); }
 
+.time-assign-input {
+    width: 68px;
+    padding: 10px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: rgba(0,0,0,0.2);
+    color: white;
+    outline: none;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+/* --- Folder Filter Pills Bar ([ All ] [ 📁 ... ] [ + ]) --- */
+.folder-tabs-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.4) rgba(255, 255, 255, 0.03);
+}
+.folder-tabs-bar::-webkit-scrollbar {
+    height: 5px;
+}
+.folder-tabs-bar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+}
+.folder-tabs-bar::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.45);
+    border-radius: 10px;
+}
+
+.folder-tabs-bar::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-purple);
+}
+
+.folder-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.folder-pill:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: var(--text-main);
+}
+
+.folder-pill.active {
+    background: rgba(59, 130, 246, 0.18);
+    border-color: var(--accent-blue);
+    color: var(--text-main);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.18);
+}
+
+.folder-pill-count {
+    font-size: 0.68rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1px 6px;
+    border-radius: 999px;
+    color: #d1d5db;
+}
+
+.folder-pill-add {
+    padding: 5px 10px;
+    font-weight: 700;
+    color: var(--accent-purple);
+    border-style: dashed;
+}
+.folder-pill-add:hover {
+    border-color: var(--accent-purple);
+    background: rgba(139, 92, 246, 0.15);
+}
+
+.new-folder-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    padding: 6px 10px;
+    border-radius: 10px;
+}
+
+.new-folder-form input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 0.85rem;
+    outline: none;
+}
+
 /* --- Lists (Works & Thoughts) --- */
 .thoughts-section { height: 250px; display: flex; flex-direction: column; }
-.item-list { list-style: none; overflow-y: auto; flex: 1; padding-right: 8px; }
+.item-list { list-style: none; overflow-y: auto; flex: 1; padding-right: 6px; }
 .item-list::-webkit-scrollbar { width: 6px; }
 .item-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
 
 .list-item {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;
-    margin-bottom: 8px; border: 1px solid transparent; transition: border 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(0,0,0,0.22);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+    transition: border 0.2s, background 0.2s, box-shadow 0.2s;
 }
 .list-item:hover { border-color: var(--glass-border); }
-.list-item.completed span { text-decoration: line-through; color: var(--text-muted); }
 
-.item-actions { display: flex; gap: 8px; }
-.action-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; }
+/* Folder Header Styling inside Works List */
+/* Folder Header Styling inside Works List */
+.list-item.folder-item {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 12px 14px;
+}
+
+.folder-title-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 120px; /* Guarantees room so folder name never squishes vertically */
+    user-select: none;
+    padding: 2px 0;
+}
+
+.folder-icon-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    color: #ddd6fe;
+    padding: 3px 7px;
+    border-radius: 7px;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.folder-title-trigger:hover .folder-icon-badge {
+    background: rgba(139, 92, 246, 0.35);
+}
+
+.folder-chevron {
+    font-size: 0.72rem;
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+.folder-chevron.collapsed {
+    transform: rotate(-90deg);
+}
+
+.folder-title-text {
+    font-weight: 600;
+    color: #f9fafb;
+    font-size: 0.95rem;
+    line-height: 1.35;
+    white-space: normal;
+    word-break: normal; /* Prevents breaking short words like 'majed' in half */
+    overflow-wrap: break-word;
+    flex: 1;
+}
+
+.folder-subcount {
+    font-size: 0.72rem;
+    color: #c4b5fd;
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    padding: 1px 7px;
+    border-radius: 999px;
+    flex-shrink: 0;
+    font-weight: 600;
+}
+
+.item-main-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Allows clean wrapping on narrow screens instead of crushing text */
+    width: 100%;
+    gap: 8px;
+}
+
+.item-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 170px; /* Ensures title always gets at least 170px before actions wrap */
+    min-width: 0;
+}
+
+.item-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.task-text {
+    transition: filter 0.25s ease, opacity 0.25s ease;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-height: 1.4;
+}
+
+/* Sub-tasks Container & Items */
+.subtasks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+    padding-top: 8px;
+    padding-left: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-left: 2px solid rgba(139, 92, 246, 0.35);
+}
+
+.subtask-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 9px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    transition: border 0.2s, background 0.2s;
+}
+
+.subtask-item:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.subtask-item.completed .task-text {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.list-item.active-focus-task,
+.subtask-item.active-focus-task {
+    border-color: rgba(59, 130, 246, 0.6);
+    background: rgba(59, 130, 246, 0.09);
+    box-shadow: 0 0 16px rgba(59, 130, 246, 0.14);
+}
+
+/* Quick Add Sub-task Inline Form inside Folder */
+.subtask-add-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.subtask-add-input {
+    flex: 1;
+    min-width: 0;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    outline: none;
+}
+.subtask-add-input:focus { border-color: var(--accent-blue); }
+
+.subtask-time-input {
+    width: 54px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 6px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    text-align: center;
+    outline: none;
+}
+
+.subtask-add-btn {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+}
+
+.item-main-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+}
+
+.list-item.completed > .item-main-row .task-text { text-decoration: line-through; color: var(--text-muted); }
+
+.item-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.action-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.96rem; padding: 2px 4px; transition: color 0.15s, transform 0.15s; }
 .action-btn:hover { color: white; }
+.focus-btn.active { color: var(--accent-blue); transform: scale(1.15); }
+.focus-btn:hover { color: var(--accent-blue); }
+.subtask-trigger-btn:hover { color: var(--success-green); }
+.edit-btn:hover { color: #fbbf24; }
 .convert-btn:hover { color: var(--accent-purple); }
 .delete-btn:hover { color: #ef4444; }
 
 /* Custom Checkbox */
-.checkbox-container { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-.checkbox-container input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--accent-blue); }
+.checkbox-container { display: flex; align-items: center; gap: 9px; cursor: pointer; flex: 1; min-width: 0; }
+.checkbox-container input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--accent-blue); flex-shrink: 0; }
 
+/* --- Inline Task Edit Mode --- */
+.inline-edit-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+
+.inline-edit-input {
+    flex: 1;
+    min-width: 0;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--accent-blue);
+    color: var(--text-main);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    outline: none;
+}
+
+.inline-edit-time {
+    width: 58px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--accent-purple);
+    color: var(--text-main);
+    padding: 6px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    text-align: center;
+    outline: none;
+}
+
+.save-edit-btn { color: var(--success-green); font-weight: bold; }
+.cancel-edit-btn { color: #ef4444; }
+
+/* --- Task Time Allocation & Progress Bar --- */
+.task-time-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+    padding-left: 24px;
+}
+
+.subtask-item .task-time-meta {
+    padding-left: 22px;
+}
+
+.task-time-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.73rem;
+    color: var(--text-muted);
+}
+
+.time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    padding: 2px 8px;
+    border-radius: 6px;
+    color: #d1d5db;
+    font-weight: 500;
+}
+
+.time-remaining-text {
+    font-size: 0.71rem;
+    color: var(--accent-purple);
+}
+
+.task-progress-track {
+    width: 100%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.task-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+    border-radius: 999px;
+    transition: width 0.35s ease;
+}
+
+.task-progress-fill.completed-bar {
+    background: linear-gradient(90deg, var(--success-green), #34d399);
+}
 
 /* --- Spoiler & Screenshot Privacy Mode --- */
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .section-header h3 {
@@ -187,6 +646,7 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
 
 .task-text {
     transition: filter 0.25s ease, opacity 0.25s ease;
+    word-break: break-word;
 }
 
 .spoiler-btn.active {
@@ -224,13 +684,13 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
     opacity: 0.85;
 }
 
-
 /* --- Drag & Drop Tasks Reordering Styles --- */
 .item-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex: 1;
+    min-width: 0;
 }
 
 .drag-handle {
@@ -239,7 +699,7 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
     font-size: 1.1rem;
     user-select: none;
     line-height: 1;
-    padding: 2px 4px;
+    padding: 2px 3px;
     opacity: 0.5;
     transition: opacity 0.2s, color 0.2s;
 }
@@ -294,6 +754,7 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
 }
 
 .modal-overlay.hidden {
+    display: flex !important;
     opacity: 0;
     pointer-events: none;
 }
@@ -430,12 +891,10 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
     transition: width 1s linear;
 }
 
-
 /* =========================================
    Responsive Design (Tablet & Mobile UX)
    ========================================= */
 
-/* --- 1. Tablets & Smaller Screens (<= 992px) --- */
 @media (max-width: 992px) {
     body {
         height: auto;
@@ -444,7 +903,6 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
         overflow-y: auto;
     }
 
-    /* Keep ambient glows fixed in the viewport while scrolling */
     .ambient-glow {
         position: fixed;
         width: 80vw;
@@ -458,7 +916,6 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
         gap: 16px;
     }
 
-    /* Unwrap main-content so we can order Timer -> Works -> Thoughts */
     .main-content {
         display: contents;
     }
@@ -471,7 +928,7 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
     .sidebar {
         order: 2;
         width: 100%;
-        max-height: 460px;
+        max-height: 560px;
     }
 
     .thoughts-section {
@@ -481,14 +938,58 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
         max-height: 400px;
     }
 
-    /* Ensure lists scroll smoothly inside their cards */
     .item-list {
-        max-height: 280px;
+        max-height: 360px;
         overflow-y: auto;
     }
 }
 
-/* --- 2. Mobile Phones (<= 600px) --- */
+/* --- Fix Folder Title Vertical Squishing & Layout --- */
+.list-item.folder-item > .item-main-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.list-item.folder-item > .item-main-row > .item-left {
+    width: 100%;
+    flex: 1 1 100%;
+    min-width: 0;
+}
+
+.folder-title-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.folder-title-text {
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #f9fafb;
+    white-space: nowrap;         /* Prevents breaking into vertical letters */
+    overflow: hidden;
+    text-overflow: ellipsis;     /* Shows clean '...' only if extremely long */
+    word-break: keep-all;
+    overflow-wrap: normal;
+}
+
+.list-item.folder-item > .item-main-row > .item-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
 @media (max-width: 600px) {
     .app-container {
         padding: 12px;
@@ -500,11 +1001,10 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
         border-radius: 16px;
     }
 
-    /* Timer Header & Dates */
     .timer-header {
         flex-direction: row;
         align-items: flex-start;
-        margin-bottom: 20px;
+        margin-bottom: 14px;
         gap: 8px;
     }
 
@@ -521,7 +1021,17 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
         white-space: nowrap;
     }
 
-    /* Scale down Circular Timer to fit mobile screens comfortably */
+    .active-task-banner {
+        width: 100%;
+        max-width: 100%;
+        justify-content: center;
+        padding: 8px 12px;
+    }
+
+    .active-task-name {
+        max-width: 150px;
+    }
+
     .timer-circle {
         width: 220px;
         height: 220px;
@@ -537,7 +1047,6 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
         font-size: 2.8rem;
     }
 
-    /* Full-width touch-friendly timer controls */
     .timer-controls {
         width: 100%;
         justify-content: center;
@@ -561,110 +1070,3 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
     .timer-settings input {
         width: 56px;
         padding: 6px;
-        font-size: 16px; /* Prevents auto-zoom on mobile browsers */
-    }
-
-    /* Section Headers & Action Buttons (Export, Spoiler, Trash) */
-    .section-header {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .header-actions {
-        flex-wrap: wrap;
-        gap: 6px;
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .header-actions .btn-sm {
-        flex: 1;
-        text-align: center;
-        justify-content: center;
-        padding: 8px 10px;
-        font-size: 0.78rem;
-        white-space: nowrap;
-    }
-
-    /* Prevent iOS zoom on form inputs and improve touch targets */
-    .input-group input {
-        font-size: 16px;
-        padding: 12px 14px;
-    }
-
-    .input-group .btn {
-        padding: 0 18px;
-        font-size: 1.2rem;
-    }
-
-    /* Task & Thought List Items */
-    .list-item {
-        padding: 12px 10px;
-        gap: 8px;
-    }
-
-    .item-left {
-        gap: 8px;
-        min-width: 0; /* Allows text wrapping inside flex container */
-    }
-
-    .task-text {
-        font-size: 0.92rem;
-        word-break: break-word;
-        line-height: 1.4;
-    }
-
-    .checkbox-container input {
-        width: 18px;
-        height: 18px;
-        flex-shrink: 0;
-    }
-
-    .drag-handle {
-        opacity: 0.85; /* Always visible on touch devices (no hover state) */
-        font-size: 1.2rem;
-        padding: 4px;
-    }
-
-    .item-actions {
-        gap: 4px;
-        flex-shrink: 0;
-    }
-
-    .action-btn {
-        padding: 6px 8px;
-        font-size: 1.15rem;
-    }
-
-    /* Recycle Bin Modal adjustments for mobile */
-    .modal-panel {
-        width: 94%;
-        max-height: 82vh;
-        padding: 16px;
-    }
-
-    .modal-panel .header-actions {
-        width: auto;
-    }
-}
-
-/* --- 3. Extra Small Phones (<= 360px) --- */
-@media (max-width: 360px) {
-    .timer-header {
-        flex-direction: column;
-    }
-
-    .timer-circle {
-        width: 190px;
-        height: 190px;
-    }
-
-    .timer-inner {
-        width: 174px;
-        height: 174px;
-    }
-
-    .time-text {
-        font-size: 2.3rem;
-    }
-}

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deep Focus</title>
-   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0a' stroke='%23262626' stroke-width='2'/%3E%3Cpath d='M19 15h13c11.5 0 19 7 19 17s-7.5 17-19 17H19V15zm8 7v20h5c6.8 0 11-4.2 11-10s-4.2-10-11-10h-5z' fill='%23ffffff'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0a' stroke='%23262626' stroke-width='2'/%3E%3Cpath d='M19 15h13c11.5 0 19 7 19 17s-7.5 17-19 17H19V15zm8 7v20h5c6.8 0 11-4.2 11-10s-4.2-10-11-10h-5z' fill='%23ffffff'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="./style/style.css">
 </head>
 <body>
@@ -27,6 +27,14 @@
                         </div>
                     </div>
                     <span class="stats">Pomodoros Today: <strong id="stats-count">0</strong></span>
+                </div>
+
+                <!-- Active Task Focus Banner -->
+                <div id="active-task-banner" class="active-task-banner">
+                    <span class="active-task-label">🎯 Focusing on:</span>
+                    <span id="active-task-name" class="active-task-name">No task selected (Click 🎯 on a task)</span>
+                    <span id="active-task-time" class="active-task-time hidden"></span>
+                    <button id="btn-clear-active-task" class="active-task-clear hidden" title="Unselect active task">×</button>
                 </div>
                 
                 <div class="timer-circle" id="timer-circle">
@@ -77,8 +85,20 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Folder Filter Pills Bar: [ All ] [ 📁 Folder ] [ + ] -->
+            <div id="folder-tabs-bar" class="folder-tabs-bar"></div>
+
+            <!-- Inline New Folder Creation Row (Hidden by default, toggled by [+] pill) -->
+            <form id="new-folder-form" class="new-folder-form hidden">
+                <input type="text" id="new-folder-input" placeholder="Folder name (e.g. زبان)..." autocomplete="off">
+                <button type="submit" class="action-btn save-edit-btn" title="Create Folder">✓</button>
+                <button type="button" id="btn-cancel-folder" class="action-btn cancel-edit-btn" title="Cancel">✕</button>
+            </form>
+
             <form id="work-form" class="input-group">
                 <input type="text" id="work-input" placeholder="Add a new task..." autocomplete="off">
+                <input type="number" id="work-time-input" class="time-assign-input" placeholder="Min" min="1" max="999" title="Allocated time in minutes ( e.g. 60 )">
                 <button type="submit" class="btn primary">+</button>
             </form>
             <ul id="works-list" class="item-list"></ul>
@@ -100,6 +120,7 @@
             <ul id="trash-list" class="item-list trash-items"></ul>
         </div>
     </div>
+
     <!-- 10-Second Session Preparation Overlay -->
     <div id="prep-overlay" class="modal-overlay hidden">
         <div class="modal-panel glass-panel prep-panel" dir="rtl">

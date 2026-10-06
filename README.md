@@ -68,7 +68,7 @@ A modern, minimalist, and functional web-based productivity application designed
 
 1. مخزن (Repository) را کلون یا دانلود کنید:
    ```bash
-   git clone https://github.com/behjatifar/DeepFoucs.git
+   git clone https://github.com/behjatifar/DEEPfoucs.git
    ```
 2. وارد پوشه پروژه شوید:
    ```bash

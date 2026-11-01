@@ -242,14 +242,39 @@ const ReportExporter = (() => {
             });
         }
 
-        // 6. Trigger Instant PNG Download
-        const dataUrl = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
+    // 6. Trigger Instant PNG Download & Web Share API (PWA Support)
         const safeDate = new Date().toISOString().slice(0, 10);
-        link.download = `deep-focus-report-${safeDate}.png`;
-        link.href = dataUrl;
-        link.click();
+        const fileName = `deep-focus-report-${safeDate}.png`;
+
+        canvas.toBlob(async (blob) => {
+            if (!blob) return;
+            const file = new File([blob], fileName, { type: 'image/png' });
+
+            // Check support for Web Share API (Optimized for Mobile/PWA)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'DeepFocus Daily Report'
+                    });
+                } catch (error) {
+                    console.log('Share canceled or failed:', error);
+                }
+            } else {
+                // Fallback: Classic download method for desktop environments
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        }, 'image/png');
     };
 
     return { exportDailyReport };
 })();
+
+

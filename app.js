@@ -523,7 +523,6 @@ const syncRealTimeElapsedMinutes = (currentRemainingSeconds) => {
             const updatedWorks = incrementTaskSpentMinutes(appState.works, appState.activeTaskId, newlyCompletedMinutes);
             appState.works = applyCollectionRules('works', updatedWorks);
         }
-
         persistState();
         renderCollection('works');
         renderActiveTaskBanner();

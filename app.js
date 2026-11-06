@@ -26,14 +26,32 @@ const DEFAULT_STATE = {
 };
 
 // Configurable rules for the initial 10-second session preparation overlay
-const SESSION_PREP_RULES = {
-    durationSeconds: 10,
-    steps: [
-        '📵 برنامه‌های شبکه اجتماعی (<strong>Close Social Media Apps</strong>) و تب‌های اضافی که حواستان را پرت می‌کنند را ببندید.',
-        '🌬️ چند نفس عمیق با بینی بکشید.',
-        '💧 مقداری آب همراه خود در طول سشن داشته باشید و بنوشید.'
-    ],
-    closingWish: '✨ امیدواریم سشن تمرکز عمیق و خوبی را تجربه کنید.'
+// Configurable rules for both Session Start (Prep) and Session End (Completion) overlays
+const SESSION_OVERLAY_RULES = {
+    start: {
+        durationSeconds: 10,
+        badgeLabel: 'آماده‌سازی ذهن',
+        title: '🚀 در حال شروع سشن جدید هستیم...',
+        steps: [
+            '📵 برنامه‌های شبکه اجتماعی (<strong>Close Social Media Apps</strong>) و تب‌های اضافی که حواستان را پرت می‌کنند را ببندید.',
+            '🌬️ چند نفس عمیق با بینی بکشید.',
+            '💧 مقداری آب همراه خود در طول سشن داشته باشید و بنوشید.'
+        ],
+        closingWish: '✨ امیدواریم سشن تمرکز عمیق و خوبی را تجربه کنید.'
+    },
+    end: {
+        durationSeconds: 10,
+        badgeLabel: 'زمان استراحت',
+        title: '🎉 سشن تمرکزت با موفقیت تموم شد، خسته نباشی!',
+        steps: [
+            '🫁 چند نفس عمیق شکمی بکش تا کامل ریلکس بشی.',
+            '😊 یه لبخند کوچیک بزن؛ به خودت و تلاشت افتخار کن!',
+            '🚶‍♂️ از جات بلند شو، کمی قدم بزن و چند تا حرکت کششی انجام بده.',
+            '🍎 یه خوراکی سبک یا یه لیوان آب خنک به خودت جایزه بده.',
+            '📵 لطفاً تو زمان استراحتت سراغ شبکه‌های اجتماعی نرو؛ بذار مغزت اطلاعاتی که پردازش کرده رو با خیال راحت تثبیت کنه. :)'
+        ],
+        closingWish: '✨ امیدوارم خیلی زود با انرژی بیشتر برای سشن بعدی برگردی!'
+    }
 };
 
 let appState = StorageHandler.load(STORAGE_KEY, DEFAULT_STATE);
@@ -529,36 +547,63 @@ const syncRealTimeElapsedMinutes = (currentRemainingSeconds) => {
     }
 };
 
+/**
+ * Closes the session overlay and immediately stops the alarm sound if playing.
+ */
 const stopSessionPrep = () => {
     if (prepIntervalId) {
         clearInterval(prepIntervalId);
         prepIntervalId = null;
     }
-    if (DOM.prepOverlay) DOM.prepOverlay.classList.add('hidden');
+    if (typeof TimerEngine.stopBeep === 'function') {
+        TimerEngine.stopBeep();
+    }
+    if (DOM.prepOverlay) {
+        DOM.prepOverlay.classList.add('hidden');
+        const panel = DOM.prepOverlay.querySelector('.prep-panel');
+        if (panel) panel.classList.remove('end-session-mode');
+    }
 };
+/**
+ * Displays the 10-second overlay dynamically for either 'start' or 'end' session states.
+ * @param {'start'|'end'} type - The overlay mode to render.
+ */
 
-const startSessionPrep = () => {
+const startSessionPrep = (type = 'start') => {
     if (!DOM.prepOverlay) return;
     stopSessionPrep();
 
-    let remaining = SESSION_PREP_RULES.durationSeconds;
-    if (DOM.prepMessages) {
-        DOM.prepMessages.innerHTML = SESSION_PREP_RULES.steps.map(step => `<li>${step}</li>`).join('');
+    const config = SESSION_OVERLAY_RULES[type] || SESSION_OVERLAY_RULES.start;
+    let remaining = config.durationSeconds;
+
+    const panel = DOM.prepOverlay.querySelector('.prep-panel');
+    const badgeEl = DOM.prepOverlay.querySelector('.prep-badge');
+    const titleEl = DOM.prepOverlay.querySelector('.prep-title');
+
+    // Apply specific visual theme for the session completion modal
+    if (panel) panel.classList.toggle('end-session-mode', type === 'end');
+
+    if (badgeEl) {
+        badgeEl.innerHTML = `${config.badgeLabel} (<strong id="prep-countdown">${remaining}</strong>s)`;
     }
-    if (DOM.prepFooter) DOM.prepFooter.textContent = SESSION_PREP_RULES.closingWish;
-    if (DOM.prepCountdown) DOM.prepCountdown.textContent = remaining;
+    if (titleEl) titleEl.textContent = config.title;
+    if (DOM.prepMessages) {
+        DOM.prepMessages.innerHTML = config.steps.map(step => `<li>${step}</li>`).join('');
+    }
+    if (DOM.prepFooter) DOM.prepFooter.textContent = config.closingWish;
     if (DOM.prepProgressBar) DOM.prepProgressBar.style.width = '100%';
 
     DOM.prepOverlay.classList.remove('hidden');
 
     prepIntervalId = setInterval(() => {
         remaining -= 1;
+        const countdownEl = document.getElementById('prep-countdown');
         if (remaining <= 0) {
             stopSessionPrep();
         } else {
-            if (DOM.prepCountdown) DOM.prepCountdown.textContent = remaining;
+            if (countdownEl) countdownEl.textContent = remaining;
             if (DOM.prepProgressBar) {
-                const percentage = (remaining / SESSION_PREP_RULES.durationSeconds) * 100;
+                const percentage = (remaining / config.durationSeconds) * 100;
                 DOM.prepProgressBar.style.width = `${percentage}%`;
             }
         }
@@ -587,20 +632,30 @@ const handleTick = (remainingSeconds) => {
     updateTimerUI();
 };
 
+/**
+ * Handles timer completion, updates daily stats, switches modes, 
+ * and triggers the completion overlay alongside the alarm sound.
+ */
 const handleTimerEnd = () => {
+    const finishedMode = currentTimer.mode;
     stopSessionPrep();
     syncRealTimeElapsedMinutes(0);
     currentTimer.isRunning = false;
 
-    if (currentTimer.mode === 'work') {
+    if (finishedMode === 'work') {
         appState.stats.pomodorosCompleted += 1;
         persistState();
         checkDailyStats();
         currentTimer.mode = 'rest';
         currentTimer.totalTime = appState.timerSettings.restTime * 60;
+        
+        // Trigger the 10-second completion celebration modal alongside the alarm sound
+        startSessionPrep('end');
+        TimerEngine.playBeep();
     } else {
         currentTimer.mode = 'work';
         currentTimer.totalTime = appState.timerSettings.workTime * 60;
+        TimerEngine.playBeep();
     }
 
     currentTimer.timeLeft = currentTimer.totalTime;

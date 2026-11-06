@@ -10,25 +10,72 @@ const TimerEngine = (() => {
     let activeTickCallback = null;
     let activeEndCallback = null;
 
+
+    // Holds reference to the active AudioContext to allow immediate interruption
+    let activeAudioCtx = null;
+
+    /**
+     * Immediately stops any ongoing alarm sound and releases audio resources.
+     */
+    const stopBeep = () => {
+        if (activeAudioCtx) {
+            activeAudioCtx.close().catch(() => {});
+            activeAudioCtx = null;
+        }
+    };
+
     // Web Audio API for soft beep notification
-    const playBeep = () => {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
+const playBeep = () => {
+        // Ensure any previous audio session is terminated before starting a new one
+        stopBeep();
 
-        const ctx = new AudioContext();
-        const osc = ctx.createOscillator();
-        const gainNode = ctx.createGain();
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
 
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5 note
-        gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
+        const audioContext = new AudioCtx();
+        activeAudioCtx = audioContext;
+        
+        const duration = 10.0;
+        const startTime = audioContext.currentTime;
 
-        osc.connect(gainNode);
-        gainNode.connect(ctx.destination);
+        // 1. Master Volume Envelope (The Breathing Arc)
+        const masterGain = audioContext.createGain();
+        masterGain.gain.setValueAtTime(0, startTime);
+        masterGain.gain.linearRampToValueAtTime(0.25, startTime + 4.0);
+        masterGain.gain.linearRampToValueAtTime(0.08, startTime + 6.0);
+        masterGain.gain.linearRampToValueAtTime(0.25, startTime + 9.0);
+        masterGain.gain.linearRampToValueAtTime(0, startTime + duration);
+        masterGain.connect(audioContext.destination);
 
-        osc.start();
-        osc.stop(ctx.currentTime + 1);
+        // 2. Crystal / Sci-Fi Bell Frequencies
+        const frequencies = [1046.50, 2800.20];
+
+        // 3. Schedule rhythmic pulses
+        for (let i = 0; i < duration; i++) {
+            [0, 0.2].forEach(pulseOffset => {
+                const strikeTime = startTime + i + pulseOffset;
+                if (strikeTime >= startTime + duration) return;
+
+                frequencies.forEach((freq, index) => {
+                    const osc = audioContext.createOscillator();
+                    const strikeGain = audioContext.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+
+                    strikeGain.gain.setValueAtTime(0, strikeTime);
+                    const maxPulseVolume = 0.3 / (index + 1);
+                    strikeGain.gain.linearRampToValueAtTime(maxPulseVolume, strikeTime + 0.02);
+                    strikeGain.gain.exponentialRampToValueAtTime(0.001, strikeTime + 0.4);
+
+                    osc.connect(strikeGain);
+                    strikeGain.connect(masterGain);
+
+                    osc.start(strikeTime);
+                    osc.stop(strikeTime + 0.5);
+                });
+            });
+        }
     };
 
     // Pure function: Calculate degrees (0-360) for circular progress bar
@@ -93,5 +140,5 @@ const TimerEngine = (() => {
         }
     });
 
-    return { start, stop, formatTime, calculateProgress, playBeep };
+    return { start, stop, formatTime, calculateProgress, playBeep, stopBeep };
 })();

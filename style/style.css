@@ -77,19 +77,55 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
 
 .hidden { display: none !important; }
 
-/* --- Timer Centerpiece --- */
+/* --- Timer Centerpiece (Orbital UI) --- */
 .timer-section {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding-top: 10px;
+    transition: all 0.3s ease;
 }
 
-.timer-header { width: 100%; display: flex; justify-content: space-between; margin-bottom: 16px; }
-.stats { color: var(--accent-purple); font-size: 0.9rem; }
+/* Mode Tabs (Focus / Rest) */
+.timer-mode-tabs {
+    display: flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    padding: 6px;
+    border-radius: 999px;
+    margin-bottom: 24px;
+    transition: opacity 0.3s ease;
+}
 
-/* Active Task Banner on Timer */
+.mode-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-tab.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+}
+
+/* Setup Prompt (Persian Question) */
+.setup-prompt {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+    transition: opacity 0.3s ease, height 0.3s ease, margin 0.3s ease;
+}
+
+/* Active Task Banner */
 .active-task-banner {
     display: flex;
     align-items: center;
@@ -98,77 +134,232 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
     border: 1px solid var(--glass-border);
     padding: 8px 16px;
     border-radius: 999px;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
     max-width: 90%;
     font-size: 0.85rem;
-    transition: all 0.25s ease;
+    transition: all 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+    height: 0;
+    overflow: hidden;
 }
 
 .active-task-banner.has-active {
+    opacity: 1;
+    pointer-events: auto;
+    height: auto;
     background: rgba(59, 130, 246, 0.12);
     border-color: rgba(59, 130, 246, 0.4);
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
 }
 
-.active-task-label {
-    color: var(--text-muted);
-    font-weight: 500;
-    white-space: nowrap;
+.active-task-label { color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+.active-task-name { color: var(--text-main); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
+.active-task-time { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
+.active-task-clear { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; padding: 0 2px; }
+.active-task-clear:hover { color: #ef4444; }
+
+/* Orbital Slider (SVG) Container */
+.orbital-slider-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Disable timer selection */
+    -webkit-user-select: none;
+    user-select: none;
 }
 
-.active-task-name {
+.orbital-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    overflow: visible;
+}
+
+.orbital-track {
+    fill: transparent;
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 12;
+}
+
+.orbital-arc {
+    fill: transparent;
+    stroke-width: 12;
+    stroke-linecap: round;
+    /* transition will be applied dynamically in JS for smooth ticking, but disabled during drag */
+}
+
+.orbital-dot {
+    fill: #ffffff;
+    cursor: grab;
+}
+.orbital-dot:active { cursor: grabbing; }
+
+/* Center Display */
+.timer-center-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+}
+
+.time-display-wrapper {
+    position: relative;
+    cursor: text;
+    padding: 0 10px;
+}
+
+.time-text {
+    font-size: 4.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
     color: var(--text-main);
-    font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 240px;
+    line-height: 1;
 }
 
-.active-task-time {
-    background: rgba(139, 92, 246, 0.2);
-    color: #c4b5fd;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    white-space: nowrap;
+/* Hidden Input for Desktop Typing */
+.time-edit-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: transparent; /* Text matches exact position, but we hide standard rendering to show time-text */
+    text-align: center;
+    font-size: 4.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    outline: none;
+    caret-color: var(--accent-blue);
+    z-index: 10;
+}
+.time-edit-input:focus {
+    color: var(--text-main);
+    background: var(--bg-dark); /* Covers the original text */
+    border-radius: 12px;
 }
 
-.active-task-clear {
+.timer-hint {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-top: 8px;
+    text-align: center;
+}
+.setup-hint { color: var(--text-muted); }
+.active-hint { color: var(--accent-blue); }
+
+/* Bottom Action Buttons */
+/* Bottom Action Buttons */
+.timer-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+}
+
+.active-btns-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px; /* فاصله بین دکمه‌های اصلی و لینک کنسل */
+}
+
+.btn-large {
+    padding: 14px 32px;
+    font-size: 1.05rem;
+    border-radius: 100px;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+}
+
+/* استایل دکمه Pause */
+.primary-outline {
+    background: rgba(59, 130, 246, 0.15); /* کمی پررنگ‌تر از قبل برای خوانایی بهتر */
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-weight: 600;
+}
+.primary-outline:hover {
+    background: rgba(59, 130, 246, 0.25);
+}
+
+/* استایل دکمه Reset */
+#btn-reset.secondary {
+    background: rgba(255, 255, 255, 0.05); /* پس‌زمینه تیره مطابق تصویر */
+    color: var(--text-main);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+#btn-reset.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* لینک‌های متنی (Cancel و Cancel session) */
+.btn-text {
     background: transparent;
     border: none;
     color: var(--text-muted);
+    font-size: 0.85rem; /* کمی کوچک‌تر برای ظرافت بیشتر */
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-color: rgba(156, 163, 175, 0.4); /* زیرخط محو */
+    text-underline-offset: 4px; /* فاصله زیرخط از متن */
     cursor: pointer;
-    font-size: 1rem;
-    line-height: 1;
-    padding: 0 2px;
+    transition: all 0.2s ease;
 }
-.active-task-clear:hover { color: #ef4444; }
-
-.timer-circle {
-    width: 290px; height: 290px;
-    border-radius: 50%;
-    background: conic-gradient(var(--accent-blue) 0deg, rgba(255,255,255,0.05) 0deg);
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 26px;
-    transition: background 0.2s linear;
+.btn-text:hover { 
+    color: var(--text-main); 
+    text-decoration-color: var(--text-main); 
 }
-
-.timer-inner {
-    width: 270px; height: 270px;
-    background: var(--bg-dark);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+.danger-text {
+    /* در حالت عادی رنگ خنثی دارد، در حالت hover قرمز می‌شود */
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+.danger-text:hover { 
+    color: #ef4444; 
+    text-decoration-color: #ef4444; 
 }
 
-.time-text { font-size: 4rem; font-weight: 700; letter-spacing: 2px; }
+/* --- Mode Switching Logic (Setup vs Active) --- */
+.timer-section.setup-mode .active-actions,
+.timer-section.setup-mode .active-hint {
+    display: none !important;
+}
 
-.timer-controls { display: flex; gap: 12px; margin-bottom: 18px; }
-.timer-settings { display: flex; gap: 16px; color: var(--text-muted); font-size: 0.85rem; }
-.timer-settings input { 
-    width: 50px; background: transparent; border: 1px solid var(--glass-border); 
-    color: white; padding: 4px; border-radius: 6px; text-align: center;
+.timer-section.active-mode .setup-actions,
+.timer-section.active-mode .setup-hint {
+    display: none !important;
+}
+
+.timer-section.active-mode .setup-prompt {
+    opacity: 0;
+    pointer-events: none;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.timer-section.active-mode .timer-mode-tabs {
+    /* opacity: 0.3; */
+    pointer-events: none;
+}
+
+.timer-section.active-mode .orbital-dot {
+    cursor: default;
+    pointer-events: none; /* Disable dragging while active */
 }
 
 /* --- Buttons & Inputs --- */

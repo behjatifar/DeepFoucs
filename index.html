@@ -17,40 +17,91 @@
         <main class="main-content">
             
             <!-- Timer Section -->
-            <section class="timer-section glass-panel">
-                <div class="timer-header">
-                    <div class="mode-info">
-                        <h2 id="mode-display">Work Mode</h2>
-                        <div class="date-container">
-                            <span id="date-shamsi" class="date-text"></span>
-                            <span id="date-gregorian" class="date-text"></span>
-                        </div>
-                    </div>
-                    <span class="stats">Pomodoros Today: <strong id="stats-count">0</strong></span>
+             <!-- Timer Section (Orbital UI) -->
+            <section class="timer-section glass-panel setup-mode" id="timer-section">
+                
+                <!-- Top Tabs: Focus / Rest -->
+                <div class="timer-mode-tabs" id="timer-mode-tabs">
+                    <button class="mode-tab active" data-mode="work">Focus Time</button>
+                    <button class="mode-tab" data-mode="rest">Rest Time</button>
                 </div>
 
-                <!-- Active Task Focus Banner -->
+                <!-- Setup Mode Prompt -->
+                <h2 class="setup-prompt" dir="rtl">چقدر می‌خواهی تمرکز کنی؟</h2>
+
+                <!-- Active Task Focus Banner (Moved right above the timer for Active Mode) -->
                 <div id="active-task-banner" class="active-task-banner">
                     <span class="active-task-label">🎯 Focusing on:</span>
-                    <span id="active-task-name" class="active-task-name">No task selected (Click 🎯 on a task)</span>
+                    <span id="active-task-name" class="active-task-name">No task selected</span>
                     <span id="active-task-time" class="active-task-time hidden"></span>
                     <button id="btn-clear-active-task" class="active-task-clear hidden" title="Unselect active task">×</button>
                 </div>
-                
-                <div class="timer-circle" id="timer-circle">
-                    <div class="timer-inner">
-                        <span id="time-display" class="time-text">25:00</span>
+
+                <!-- Orbital Slider & Timer Display -->
+                <div class="orbital-slider-container">
+                    <svg class="orbital-svg" viewBox="0 0 300 300">
+                        <defs>
+                            <!-- Gradient for the active progress arc -->
+                            <linearGradient id="arc-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="var(--accent-blue)" />
+                                <stop offset="100%" stop-color="var(--accent-purple)" />
+                            </linearGradient>
+                            <!-- Glow filter for the draggable dot -->
+                            <filter id="dot-glow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+
+                        <!-- Background Track (Dark Circle) -->
+                        <circle class="orbital-track" cx="150" cy="150" r="135" />
+                        
+                        <!-- Progress Arc (Starts from top due to -90deg transform) -->
+                        <circle class="orbital-arc" id="orbital-arc" cx="150" cy="150" r="135" 
+                                stroke="url(#arc-gradient)" transform="rotate(-90 150 150)" />
+                        
+                        <!-- Draggable Glowing Dot (Positioned via JS cx/cy) -->
+                        <circle class="orbital-dot" id="orbital-dot" cx="150" cy="15" r="10" filter="url(#dot-glow)" />
+                    </svg>
+
+                   <!-- Center Display Content -->
+                    <div class="timer-center-content">
+                        <!-- Editable Time Display -->
+                        <div class="time-display-wrapper" id="time-display-wrapper" title="Click to type manually">
+                            <span id="time-display" class="time-text">25:00</span>
+                            <!-- Hidden input for typing the minutes directly -->
+                            <input type="text" id="time-edit-input" class="time-edit-input hidden" placeholder="25" autocomplete="off" maxlength="3">
+                        </div>
+                        
+                        <!-- Dynamic Hints (Removed 'hidden' from active-hint) -->
+                        <span id="setup-hint" class="timer-hint setup-hint">(Tap numbers to edit)</span>
+                        <span id="active-hint" class="timer-hint active-hint">Keep going, you got this!</span>
                     </div>
                 </div>
-
-                <div class="timer-controls">
-                    <button id="btn-toggle" class="btn primary">Start</button>
-                    <button id="btn-reset" class="btn secondary">Reset</button>
+                     
+                <!-- Bottom Controls: Setup Mode -->
+                <div class="timer-actions setup-actions" id="setup-actions">
+                    <button id="btn-set-focus" class="btn primary btn-large">SET FOCUS TIME</button>
+                    <button id="btn-cancel-setup" class="btn-text">Cancel</button>
                 </div>
 
-                <div class="timer-settings">
-                    <label>Work (min): <input type="number" id="input-work-time" value="25" min="1"></label>
-                    <label>Rest (min): <input type="number" id="input-rest-time" value="5" min="1"></label>
+                <!-- Bottom Controls: Active Session Mode -->
+                <div class="timer-actions active-actions" id="active-actions">
+                    <div class="active-btns-row">
+                        <button id="btn-toggle" class="btn primary-outline">II PAUSE</button>
+                        <button id="btn-reset" class="btn secondary">↺ RESET</button>
+                    </div>
+                    <button id="btn-cancel-session" class="btn-text danger-text">Cancel session</button>
+                </div>
+
+                <!-- Kept for backward compatibility with checkDailyStats in app.js, hidden from layout -->
+                <div class="hidden-stats" style="display: none;">
+                    <span id="stats-count">0</span>
+                    <span id="date-shamsi"></span>
+                    <span id="date-gregorian"></span>
                 </div>
             </section>
 

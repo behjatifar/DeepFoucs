@@ -110,16 +110,27 @@ let prepIntervalId = null;
 // --- 2. DOM Elements & Modular Collection Rules ---
 const DOM = {
     body: document.body,
+    
+    // --- Orbital Timer DOM Elements ---
+    timerSection: document.getElementById('timer-section'),
+    setupPrompt: document.querySelector('.setup-prompt'),
     timeDisplay: document.getElementById('time-display'),
-    modeDisplay: document.getElementById('mode-display'),
-    dateShamsi: document.getElementById('date-shamsi'),
-    dateGregorian: document.getElementById('date-gregorian'),
-    timerCircle: document.getElementById('timer-circle'),
+    timeDisplayWrapper: document.getElementById('time-display-wrapper'),
+    timeEditInput: document.getElementById('time-edit-input'),
+    orbitalArc: document.getElementById('orbital-arc'),
+    orbitalDot: document.getElementById('orbital-dot'),
     btnToggle: document.getElementById('btn-toggle'),
     btnReset: document.getElementById('btn-reset'),
+    btnSetFocus: document.getElementById('btn-set-focus'),
+    btnCancelSession: document.getElementById('btn-cancel-session'),
+    modeTabs: document.querySelectorAll('.mode-tab'),
+    
+    // --- Backward Compatibility (Stats & Dates) ---
     statsCount: document.getElementById('stats-count'),
-    inputWorkTime: document.getElementById('input-work-time'),
-    inputRestTime: document.getElementById('input-rest-time'),
+    dateShamsi: document.getElementById('date-shamsi'),
+    dateGregorian: document.getElementById('date-gregorian'),
+    
+    // --- Remaining Global Elements ---
     spoilerGroupBtns: document.querySelectorAll('[data-spoiler-group]'),
 
     // Active Task Banner DOM Elements
@@ -612,17 +623,71 @@ const startSessionPrep = (type = 'start') => {
 
 const updateTimerUI = () => {
     const formatted = TimerEngine.formatTime(currentTimer.timeLeft);
-    DOM.timeDisplay.textContent = formatted;
-    const degrees = TimerEngine.calculateProgress(currentTimer.timeLeft, currentTimer.totalTime);
-    const color = currentTimer.mode === 'work' ? 'var(--accent-blue)' : 'var(--accent-purple)';
+    if (DOM.timeDisplay) DOM.timeDisplay.textContent = formatted;
+    
+    // Infer state: If it's not running and time is full, it's Setup Mode.
+    const isSetup = !currentTimer.isRunning && currentTimer.timeLeft === currentTimer.totalTime;
+    
+    if (DOM.timerSection) {
+        DOM.timerSection.classList.toggle('setup-mode', isSetup);
+        DOM.timerSection.classList.toggle('active-mode', !isSetup);
+    }
 
-    DOM.timerCircle.style.background = `conic-gradient(${color} ${degrees}deg, rgba(255,255,255,0.05) ${degrees}deg)`;
-    DOM.modeDisplay.textContent = currentTimer.mode === 'work' ? 'Work Mode' : 'Rest Mode';
-    DOM.btnToggle.textContent = currentTimer.isRunning ? 'Pause' : 'Start';
-    DOM.body.classList.toggle('rest-mode', currentTimer.mode === 'rest');
+    // --- SVG Orbital Math & Rendering ---
+    let progress;
+    if (isSetup) {
+        // In setup mode, circle represents a 60-minute dial. Modulo handles values > 60m smoothly.
+        const maxSetupTime = 60 * 60; 
+        progress = (currentTimer.totalTime % (maxSetupTime + 1)) / maxSetupTime;
+        if (progress === 0 && currentTimer.totalTime > 0) progress = 1; // Snap 60m to top
+    } else {
+        // In active mode, arc drains based on total session time
+        progress = currentTimer.totalTime > 0 ? (currentTimer.timeLeft / currentTimer.totalTime) : 0;
+    }
 
+    if (DOM.orbitalArc && DOM.orbitalDot) {
+        const radius = 135;
+        const circumference = 2 * Math.PI * radius;
+        
+        // Fill Arc
+        DOM.orbitalArc.style.strokeDasharray = `${circumference}`;
+        DOM.orbitalArc.style.strokeDashoffset = `${circumference * (1 - progress)}`;
+        
+        // Calculate Dot Position using Trigonometry (Angle from -90deg/Top to 270deg)
+        const angleInRads = ((progress * 360) - 90) * (Math.PI / 180);
+        const cx = 150 + radius * Math.cos(angleInRads);
+        const cy = 150 + radius * Math.sin(angleInRads);
+        
+        DOM.orbitalDot.setAttribute('cx', cx);
+        DOM.orbitalDot.setAttribute('cy', cy);
+    }
+
+    // --- Buttons & Theme Updates ---
+    const isWork = currentTimer.mode === 'work';
+    
+    // Dynamic Prompt & Button Text
+    if (DOM.setupPrompt) {
+        DOM.setupPrompt.textContent = isWork ? 'چقدر می‌خواهی تمرکز کنی؟' : 'چقدر می‌خواهی استراحت کنی؟';
+    }
+    if (DOM.btnSetFocus) {
+        DOM.btnSetFocus.textContent = isWork ? 'SET FOCUS TIME' : 'SET REST TIME';
+    }
+
+    if (DOM.btnToggle) {
+        DOM.btnToggle.textContent = currentTimer.isRunning ? 'II PAUSE' : '▶ RESUME';
+    }
+    
+    // Apply visual themes for Rest vs Work
+    DOM.body.classList.toggle('rest-mode', !isWork);
+    const stop1 = document.querySelector('#arc-gradient stop:nth-child(1)');
+    const stop2 = document.querySelector('#arc-gradient stop:nth-child(2)');
+    if (stop1 && stop2) {
+        stop1.setAttribute('stop-color', isWork ? 'var(--accent-blue)' : '#ec4899');
+        stop2.setAttribute('stop-color', isWork ? 'var(--accent-purple)' : '#a855f7');
+    }
+    
     document.title = currentTimer.isRunning
-        ? `(${formatted}) ${currentTimer.mode === 'work' ? 'Work' : 'Rest'} - Deep Focus`
+        ? `(${formatted}) ${isWork ? 'Work' : 'Rest'} - Deep Focus`
         : 'Deep Focus Dashboard';
 };
 
@@ -1390,10 +1455,117 @@ const handleAddItem = (groupKey, e) => {
     renderActiveTaskBanner();
 };
 
+/**
+ * Initializes Drag, Scroll, and Keyboard events for the Orbital Slider
+ */
+const initOrbitalSlider = () => {
+    const sliderContainer = document.querySelector('.orbital-slider-container');
+    if (!sliderContainer) return;
+    
+    let isDragging = false;
+
+    // Math: Convert X/Y to Angle -> Minutes -> Update State
+    const updateTimeFromCoordinates = (clientX, clientY) => {
+        const rect = sliderContainer.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        let angle = Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI);
+        angle += 90; // Shift 0 degrees to 12 o'clock
+        if (angle < 0) angle += 360;
+        
+        let minutes = Math.round((angle / 360) * 60);
+        if (minutes === 0) minutes = 60; // 0 at top means full 60 mins
+        
+        const modeKey = currentTimer.mode + 'Time';
+        appState.timerSettings[modeKey] = minutes;
+        currentTimer.totalTime = minutes * 60;
+        currentTimer.timeLeft = minutes * 60;
+        currentTimer.lastRecordedRemainingSeconds = minutes * 60;
+        
+        updateTimerUI();
+    };
+
+    // --- 1. Drag / Touch Events (Pointer Events cover both) ---
+    sliderContainer.addEventListener('pointerdown', (e) => {
+        const isSetup = !currentTimer.isRunning && currentTimer.timeLeft === currentTimer.totalTime;
+        if (!isSetup) return; // Disable drag during active session
+        isDragging = true;
+        DOM.orbitalDot.style.cursor = 'grabbing';
+        updateTimeFromCoordinates(e.clientX, e.clientY); // Snap instantly on click
+    });
+
+    window.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        updateTimeFromCoordinates(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('pointerup', () => {
+        if (isDragging) {
+            isDragging = false;
+            persistState();
+            DOM.orbitalDot.style.cursor = 'grab';
+        }
+    });
+
+    // --- 2. Mouse Wheel Scroll Events (Desktop UX) ---
+    sliderContainer.addEventListener('wheel', (e) => {
+        const isSetup = !currentTimer.isRunning && currentTimer.timeLeft === currentTimer.totalTime;
+        if (!isSetup) return;
+        e.preventDefault();
+        
+        const modeKey = currentTimer.mode + 'Time';
+        let mins = appState.timerSettings[modeKey];
+        mins += e.deltaY > 0 ? -1 : 1; // Down scroll = decrease time
+        mins = Math.max(1, Math.min(180, mins)); // Allow up to 3 hours max via scroll
+        
+        appState.timerSettings[modeKey] = mins;
+        currentTimer.totalTime = mins * 60;
+        currentTimer.timeLeft = mins * 60;
+        
+        persistState();
+        updateTimerUI();
+    }, { passive: false });
+
+    // --- 3. Keyboard Typing Events (Desktop UX) ---
+    if (DOM.timeEditInput && DOM.timeDisplayWrapper) {
+        DOM.timeDisplayWrapper.addEventListener('click', () => {
+            const isSetup = !currentTimer.isRunning && currentTimer.timeLeft === currentTimer.totalTime;
+            if (!isSetup) return;
+            DOM.timeEditInput.classList.remove('hidden');
+            DOM.timeEditInput.value = '';
+            DOM.timeEditInput.focus();
+        });
+
+        const finalizeTyping = () => {
+            DOM.timeEditInput.classList.add('hidden');
+            let typedVal = parseInt(DOM.timeEditInput.value, 10);
+            if (isNaN(typedVal) || typedVal < 1) return;
+            
+            typedVal = Math.min(240, typedVal); // Hard limit to 4 hours to prevent abuse
+            const modeKey = currentTimer.mode + 'Time';
+            appState.timerSettings[modeKey] = typedVal;
+            currentTimer.totalTime = typedVal * 60;
+            currentTimer.timeLeft = typedVal * 60;
+            
+            persistState();
+            updateTimerUI();
+        };
+
+        DOM.timeEditInput.addEventListener('blur', finalizeTyping);
+        DOM.timeEditInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') finalizeTyping();
+            if (e.key === 'Escape') DOM.timeEditInput.classList.add('hidden');
+        });
+    }
+};
+
 // --- 8. Event Listeners Initialization ---
 
 const setupEvents = () => {
 
+    // --- 1. General App Events (Lists, Folders, Trash, etc.) ---
+    
     // Smooth horizontal mouse-wheel scrolling for Folder Filter Pills Bar on desktop
     if (DOM.folderTabsBar) {
         DOM.folderTabsBar.addEventListener('wheel', (e) => {
@@ -1403,6 +1575,7 @@ const setupEvents = () => {
             }
         }, { passive: false });
     }
+    
     // Master Spoiler Buttons
     DOM.spoilerGroupBtns.forEach(btn => {
         const groupKey = btn.dataset.spoilerGroup;
@@ -1499,64 +1672,94 @@ const setupEvents = () => {
         DOM.btnSkipPrep.addEventListener('click', stopSessionPrep);
     }
 
-    // Timer Start / Pause Button
-    DOM.btnToggle.addEventListener('click', () => {
-        const isFreshWorkSession =
-            !currentTimer.isRunning &&
-            currentTimer.mode === 'work' &&
-            currentTimer.timeLeft === currentTimer.totalTime;
 
-        currentTimer.isRunning = !currentTimer.isRunning;
+    // --- 2. Orbital Timer UI Events ---
 
-        if (currentTimer.isRunning) {
-            if (isFreshWorkSession) {
-                currentTimer.lastRecordedRemainingSeconds = currentTimer.timeLeft;
-                startSessionPrep();
+    const isSetupModeNow = () => !currentTimer.isRunning && currentTimer.timeLeft === currentTimer.totalTime;
+
+    // Start Session (SET FOCUS TIME) (updated comment on line 1681)
+// Start Session (SET FOCUS TIME / SET REST TIME) 
+    if (DOM.btnSetFocus) {
+        DOM.btnSetFocus.addEventListener('click', () => {
+            if (!isSetupModeNow()) return;
+            currentTimer.isRunning = true;
+            currentTimer.lastRecordedRemainingSeconds = currentTimer.timeLeft;
+            
+            // اورلی آماده‌سازی ۱۰ ثانیه‌ای فقط برای حالت تمرکز (Work) باز شود
+            if (currentTimer.mode === 'work') {
+                startSessionPrep('start'); 
             }
+            
             TimerEngine.start(currentTimer.timeLeft, handleTick, handleTimerEnd);
-        } else {
-            stopSessionPrep();
-            TimerEngine.stop();
-        }
-        updateTimerUI();
-    });
+            updateTimerUI();
+        });
+    }
 
-    // Timer Reset Button
-    DOM.btnReset.addEventListener('click', () => {
-        stopSessionPrep();
+    // Pause / Resume Session
+    if (DOM.btnToggle) {
+        DOM.btnToggle.addEventListener('click', () => {
+            if (isSetupModeNow()) return; // Pause disabled in setup
+            currentTimer.isRunning = !currentTimer.isRunning;
+            if (currentTimer.isRunning) {
+                TimerEngine.start(currentTimer.timeLeft, handleTick, handleTimerEnd);
+            } else {
+                TimerEngine.stop();
+                stopSessionPrep();
+            }
+            updateTimerUI();
+        });
+    }
+
+    // Reset Timer Logic (Reverts to Setup Mode)
+    const resetTimerToSetup = () => {
         TimerEngine.stop();
+        stopSessionPrep();
         currentTimer.isRunning = false;
-        currentTimer.mode = 'work';
-        currentTimer.totalTime = appState.timerSettings.workTime * 60;
         currentTimer.timeLeft = currentTimer.totalTime;
         currentTimer.lastRecordedRemainingSeconds = currentTimer.totalTime;
         updateTimerUI();
-    });
-
-    // Timer Duration Inputs
-    const bindTimeInput = (inputEl, settingKey, targetMode) => {
-        if (!inputEl) return;
-        inputEl.value = appState.timerSettings[settingKey];
-        inputEl.addEventListener('change', (e) => {
-            const val = Math.max(1, parseInt(e.target.value) || DEFAULT_STATE.timerSettings[settingKey]);
-            appState.timerSettings[settingKey] = val;
-            if (currentTimer.mode === targetMode && !currentTimer.isRunning) {
-                currentTimer.totalTime = val * 60;
-                currentTimer.timeLeft = val * 60;
-                currentTimer.lastRecordedRemainingSeconds = val * 60;
-                updateTimerUI();
-            }
-            persistState();
-        });
     };
 
-    bindTimeInput(DOM.inputWorkTime, 'workTime', 'work');
-    bindTimeInput(DOM.inputRestTime, 'restTime', 'rest');
+    if (DOM.btnReset) DOM.btnReset.addEventListener('click', resetTimerToSetup);
+    if (DOM.btnCancelSession) DOM.btnCancelSession.addEventListener('click', resetTimerToSetup);
+    
+    // Mode Switcher Tabs (Focus / Rest)
+    DOM.modeTabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            if (!isSetupModeNow()) return; // Lock tabs during active run
+            const selectedMode = e.target.dataset.mode;
+            currentTimer.mode = selectedMode;
+            
+            DOM.modeTabs.forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            const modeTime = appState.timerSettings[selectedMode + 'Time'] * 60;
+            currentTimer.totalTime = modeTime;
+            currentTimer.timeLeft = modeTime;
+            updateTimerUI();
+        });
+    });
+
+    // Setup Mode "Cancel" text button (Resets to default time)
+    const btnCancelSetup = document.getElementById('btn-cancel-setup');
+    if (btnCancelSetup) {
+        btnCancelSetup.addEventListener('click', () => {
+            if (!isSetupModeNow()) return;
+            const modeKey = currentTimer.mode + 'Time';
+            const defaultTime = DEFAULT_STATE.timerSettings[modeKey];
+            appState.timerSettings[modeKey] = defaultTime;
+            currentTimer.totalTime = defaultTime * 60;
+            currentTimer.timeLeft = defaultTime * 60;
+            persistState();
+            updateTimerUI();
+        });
+    }
 };
 
 // --- 9. Initialization ---
 const initApp = () => {
     checkDailyStats();
+    initOrbitalSlider();
     setupEvents();
     renderAllCollections();
     updateTimerUI();

@@ -164,6 +164,9 @@ const DOM = {
     prepProgressBar: document.getElementById('prep-progress-bar'),
     btnSkipPrep: document.getElementById('btn-skip-prep'),
 
+    // --- Mobile SPA Elements ---
+    mobileNavBtn: document.getElementById('mobile-nav-btn'),
+    mobileNavText: document.getElementById('mobile-nav-text'),
     // Collection-specific DOM references and rules
     collections: {
         works: {
@@ -839,18 +842,21 @@ const updateGroupSpoilerBtnUI = (groupKey) => {
 const buildTimeProgressHtml = (groupKey, item, parentId = null) => {
     const metrics = calculateTaskTimeMetrics(item);
     if (!metrics.hasTimeData) return '';
+    
+    // استخراج اعداد دقیق زمان برای نمایش در UI جدید
+    const { allocated, spent } = getEffectiveTimeTotals(item);
+    
     const editCall = parentId
         ? `dispatchSubtaskAction('${parentId}', 'startEdit', '${item.id}')`
         : `dispatchItemAction('${groupKey}', 'startEdit', '${item.id}')`;
 
+    const statusText = metrics.isOverOrDone ? 'Goal reached ✓' : '';
+
     return `
-        <div class="task-time-meta">
-            <div class="task-time-info">
-                <span class="time-badge" onclick="${editCall}" title="Click to adjust time">${metrics.badgeText}</span>
-                <span class="time-remaining-text">${metrics.remainingText}</span>
-            </div>
-            <div class="task-progress-track">
-                <div class="task-progress-fill ${metrics.isOverOrDone ? 'completed-bar' : ''}" style="width: ${metrics.percentage}%"></div>
+        <div class="minimal-time-meta" onclick="${editCall}" title="Click to adjust time">
+            <span class="time-text-minimal">🕒 ${spent}m / ${allocated}m <span class="status-green">${statusText}</span></span>
+            <div class="task-progress-track-thin">
+                <div class="task-progress-fill-thin ${metrics.isOverOrDone ? 'completed-bar' : ''}" style="width: ${metrics.percentage}%"></div>
             </div>
         </div>
     `;
@@ -887,7 +893,7 @@ const renderCollection = (groupKey) => {
 
         li.className = `list-item ${itemIsFolder ? 'folder-item' : ''} ${item.completed ? 'completed' : ''} ${isActiveFocus ? 'active-focus-task' : ''}`;
 
-        // Inline Edit Mode for top-level item/folder
+        // Inline Edit Mode
         if (isEditing) {
             const timeEditInputHtml = config.hasTimeAllocation
                 ? `<input type="number" id="edit-time-${item.id}" class="inline-edit-time" value="${item.allocatedMinutes || ''}" placeholder="Min" min="0" max="999" title="Allocated minutes">`
@@ -897,11 +903,10 @@ const renderCollection = (groupKey) => {
                 <div class="inline-edit-group">
                     <input type="text" id="edit-text-${item.id}" class="inline-edit-input" value="${escapeHtml(item.text)}" autocomplete="off">
                     ${timeEditInputHtml}
-                    <button type="button" class="action-btn save-edit-btn" onclick="saveInlineEdit('${groupKey}', '${item.id}')" title="Save (Enter)">✓</button>
-                    <button type="button" class="action-btn cancel-edit-btn" onclick="cancelInlineEdit('${groupKey}')" title="Cancel (Esc)">✕</button>
+                    <button type="button" class="action-btn save-edit-btn" onclick="saveInlineEdit('${groupKey}', '${item.id}', null)">✓</button>
+                    <button type="button" class="action-btn cancel-edit-btn" onclick="cancelInlineEdit('${groupKey}')">✕</button>
                 </div>
             `;
-
             config.listEl.appendChild(li);
             bindInlineEditKeys(groupKey, item.id, null);
             return;
@@ -912,22 +917,50 @@ const renderCollection = (groupKey) => {
             ? `<span class="drag-handle" title="Drag to reorder priority">⠿</span>`
             : '';
 
-        // Left Section: Folder Header vs Regular Task
+        // 1. تعریف دکمه تارگت (Focus) 
+        const focusBtnHtml = config.canFocus
+            ? `<button type="button" class="action-btn focus-btn primary-action ${isActiveFocus ? 'active' : ''}" onclick="dispatchItemAction('${groupKey}', 'setActiveTask', '${item.id}')" title="Focus">
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor"></circle><path d="M21 3L15 9"></path><path d="M21 3l-2.5 1.5L21 3z"></path></svg>
+               </button>`
+            : '';
+
+        // 2. تعریف چک‌باکس انجام تسک
+        const checkboxHtml = config.hasCheckbox
+            ? `<label class="checkbox-container single-checkbox">
+                   <input type="checkbox" class="circle-checkbox" ${item.completed ? 'checked' : ''} onchange="dispatchItemAction('${groupKey}', 'toggleComplete', '${item.id}')">
+               </label>`
+            : '';
+
+        // 3. تعریف آیکون‌های مدرن برای دکمه‌های ثانویه
+        const secondaryActionsHtml = `
+            <div class="secondary-actions">
+                <button type="button" class="action-btn edit-btn" onclick="dispatchItemAction('${groupKey}', 'startEdit', '${item.id}')" title="Edit">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                </button>
+                <button type="button" class="action-btn spoiler-btn ${blurred ? 'active' : ''}" onclick="dispatchItemAction('${groupKey}', 'toggleSpoiler', '${item.id}')" title="Toggle Spoiler">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+                <button type="button" class="action-btn delete-btn" onclick="dispatchItemAction('${groupKey}', 'delete', '${item.id}')" title="Delete">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+        `;
+
+        // 4. مونتاژ بخش چپ (متن + دکمه تارگت)
         let leftSectionHtml = '';
         const isCollapsed = Boolean(item.isCollapsed);
 
         if (itemIsFolder) {
             const subCount = Array.isArray(item.subtasks) ? item.subtasks.length : 0;
             const doneSubCount = Array.isArray(item.subtasks) ? item.subtasks.filter(s => s.completed).length : 0;
+            const folderSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="folder-svg-icon"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="folder-chevron ${isCollapsed ? 'collapsed' : ''}"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
 
             leftSectionHtml = `
                 <div class="item-left">
                     ${dragHandleHtml}
-                    <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="dispatchItemAction('${groupKey}', 'toggleComplete', '${item.id}')" title="Mark entire folder completed" style="cursor:pointer; width:16px; height:16px; accent-color:var(--accent-blue); flex-shrink:0;">
+                    ${focusBtnHtml}
                     <div class="folder-title-trigger" onclick="dispatchItemAction('${groupKey}', 'toggleFolderCollapse', '${item.id}')" title="Click to expand/collapse folder">
-                        <span class="folder-icon-badge">
-                            📁 <span class="folder-chevron ${isCollapsed ? 'collapsed' : ''}">▾</span>
-                        </span>
+                        <span class="folder-icon-modern">${folderSvg}</span>
                         <span class="task-text folder-title-text ${blurred ? 'spoiler-text' : ''}">${escapeHtml(item.text)}</span>
                         <span class="folder-subcount">${doneSubCount}/${subCount}</span>
                     </div>
@@ -935,35 +968,16 @@ const renderCollection = (groupKey) => {
             `;
         } else {
             const textHtml = `<span class="task-text ${blurred ? 'spoiler-text' : ''}" ondblclick="dispatchItemAction('${groupKey}', 'startEdit', '${item.id}')" title="Double-click to rename">${escapeHtml(item.text)}</span>`;
-            const innerContentHtml = config.hasCheckbox
-                ? `<label class="checkbox-container">
-                       <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="dispatchItemAction('${groupKey}', 'toggleComplete', '${item.id}')">
-                       ${textHtml}
-                   </label>`
-                : textHtml;
-            leftSectionHtml = `<div class="item-left">${dragHandleHtml}${innerContentHtml}</div>`;
+            leftSectionHtml = `
+                <div class="item-left">
+                    ${dragHandleHtml}
+                    ${focusBtnHtml}
+                    ${textHtml}
+                </div>
+            `;
         }
 
-        const focusBtnHtml = config.canFocus
-            ? `<button type="button" class="action-btn focus-btn ${isActiveFocus ? 'active' : ''}" onclick="dispatchItemAction('${groupKey}', 'setActiveTask', '${item.id}')" title="Focus timer on this item">🎯</button>`
-            : '';
-
-        const addSubtaskBtnHtml = groupKey === 'works'
-            ? `<button type="button" class="action-btn subtask-trigger-btn" onclick="dispatchItemAction('works', 'toggleSubtaskInput', '${item.id}')" title="${itemIsFolder ? 'Add Sub-task to Folder' : 'Convert to Folder & Add Sub-task'}">➕</button>`
-            : '';
-
-        const editBtnHtml = `<button type="button" class="action-btn edit-btn" onclick="dispatchItemAction('${groupKey}', 'startEdit', '${item.id}')" title="Rename / Edit Time">✎</button>`;
-
-        const convertBtnHtml = config.canConvert
-            ? `<button type="button" class="action-btn convert-btn" onclick="dispatchItemAction('${groupKey}', 'convert', '${item.id}')" title="Move to Works">↗</button>`
-            : '';
-
-        const timeProgressSectionHtml = config.hasTimeAllocation
-            ? buildTimeProgressHtml(groupKey, item, null)
-            : '';
-
-        // Sub-tasks List & Inline Add Sub-task Form
-        // Strictly respects !isCollapsed so clicking the folder header ALWAYS collapses/expands cleanly
+        // 5. مدیریت ساب‌تسک‌ها
         let subtasksSectionHtml = '';
         const showSubtaskInput = openSubtaskFormForId === item.id;
 
@@ -991,23 +1005,60 @@ const renderCollection = (groupKey) => {
 
                     const subBlurred = isItemBlurred(sub, groupSpoilerActive) || blurred;
                     const subActiveFocus = appState.activeTaskId === sub.id;
-                    const subTimeHtml = buildTimeProgressHtml('works', sub, item.id);
+
+                    const subSecondaryActionsHtml = `
+                        <div class="secondary-actions">
+                            <button type="button" class="action-btn edit-btn" onclick="dispatchSubtaskAction('${item.id}', 'startEdit', '${sub.id}')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                            </button>
+                            <button type="button" class="action-btn spoiler-btn ${subBlurred ? 'active' : ''}" onclick="dispatchSubtaskAction('${item.id}', 'toggleSpoiler', '${sub.id}')">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                            <button type="button" class="action-btn delete-btn" onclick="dispatchSubtaskAction('${item.id}', 'delete', '${sub.id}')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
+                    `;
+
+                    let subMetaRowHtml = '';
+                    const subMetrics = calculateTaskTimeMetrics(sub);
+                    if (subMetrics.hasTimeData) {
+                        const { allocated, spent } = getEffectiveTimeTotals(sub);
+                        const statusText = subMetrics.isOverOrDone ? 'Goal reached ✓' : '';
+                        subMetaRowHtml = `
+                            <div class="minimal-time-meta">
+                                <div class="meta-row-flex">
+                                    <span class="time-text-minimal">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                        ${spent}m / ${allocated}m <span class="status-green">${statusText}</span>
+                                    </span>
+                                    ${subSecondaryActionsHtml}
+                                </div>
+                                <div class="task-progress-track-thin">
+                                    <div class="task-progress-fill-thin ${subMetrics.isOverOrDone ? 'completed-bar' : ''}" style="width: ${subMetrics.percentage}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        subMetaRowHtml = `<div class="minimal-time-meta"><div class="meta-row-flex"><div></div>${subSecondaryActionsHtml}</div></div>`;
+                    }
 
                     return `
                         <div class="subtask-item ${sub.completed ? 'completed' : ''} ${subActiveFocus ? 'active-focus-task' : ''}" draggable="false" ondragstart="event.stopPropagation()">
                             <div class="item-main-row">
-                                <label class="checkbox-container">
-                                    <input type="checkbox" ${sub.completed ? 'checked' : ''} onchange="dispatchSubtaskAction('${item.id}', 'toggleComplete', '${sub.id}')">
-                                    <span class="task-text ${subBlurred ? 'spoiler-text' : ''}" ondblclick="dispatchSubtaskAction('${item.id}', 'startEdit', '${sub.id}')" title="Double-click to rename">${escapeHtml(sub.text)}</span>
-                                </label>
-                                <div class="item-actions">
-                                    <button type="button" class="action-btn focus-btn ${subActiveFocus ? 'active' : ''}" onclick="dispatchSubtaskAction('${item.id}', 'setActiveTask', '${sub.id}')" title="Focus timer on this sub-task">🎯</button>
-                                    <button type="button" class="action-btn edit-btn" onclick="dispatchSubtaskAction('${item.id}', 'startEdit', '${sub.id}')" title="Rename / Edit Time">✎</button>
-                                    <button type="button" class="action-btn spoiler-btn ${subBlurred ? 'active' : ''}" onclick="dispatchSubtaskAction('${item.id}', 'toggleSpoiler', '${sub.id}')" title="Toggle Spoiler">${subBlurred ? '👾' : '👁️'}</button>
-                                    <button type="button" class="action-btn delete-btn" onclick="dispatchSubtaskAction('${item.id}', 'delete', '${sub.id}')" title="Delete Sub-task">×</button>
+                                <div class="item-left">
+                                    <button type="button" class="action-btn focus-btn primary-action ${subActiveFocus ? 'active' : ''}" onclick="dispatchSubtaskAction('${item.id}', 'setActiveTask', '${sub.id}')">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor"></circle><path d="M21 3L15 9"></path><path d="M21 3l-2.5 1.5L21 3z"></path></svg>
+                                    </button>
+                                    <span class="task-text ${subBlurred ? 'spoiler-text' : ''}" ondblclick="dispatchSubtaskAction('${item.id}', 'startEdit', '${sub.id}')">${escapeHtml(sub.text)}</span>
+                                </div>
+                                <div class="actions-container">
+                                    <label class="checkbox-container single-checkbox">
+                                        <input type="checkbox" class="circle-checkbox" ${sub.completed ? 'checked' : ''} onchange="dispatchSubtaskAction('${item.id}', 'toggleComplete', '${sub.id}')">
+                                    </label>
                                 </div>
                             </div>
-                            ${subTimeHtml}
+                            ${subMetaRowHtml}
                         </div>
                     `;
                 })
@@ -1031,21 +1082,43 @@ const renderCollection = (groupKey) => {
             }
         }
 
+        // 6. ردیف پایین تسک (بج زمان + دکمه‌های ثانویه)
+        let metaRowHtml = '';
+        if (config.hasTimeAllocation) {
+            const metrics = calculateTaskTimeMetrics(item);
+            if (metrics.hasTimeData) {
+                const { allocated, spent } = getEffectiveTimeTotals(item);
+                const statusText = metrics.isOverOrDone ? 'Goal reached ✓' : '';
+                metaRowHtml = `
+                    <div class="minimal-time-meta">
+                        <div class="meta-row-flex">
+                            <span class="time-text-minimal">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                ${spent}m / ${allocated}m <span class="status-green">${statusText}</span>
+                            </span>
+                            ${secondaryActionsHtml}
+                        </div>
+                        <div class="task-progress-track-thin">
+                            <div class="task-progress-fill-thin ${metrics.isOverOrDone ? 'completed-bar' : ''}" style="width: ${metrics.percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                metaRowHtml = `<div class="minimal-time-meta"><div class="meta-row-flex"><div></div>${secondaryActionsHtml}</div></div>`;
+            }
+        } else {
+            metaRowHtml = `<div class="minimal-time-meta"><div class="meta-row-flex"><div></div>${secondaryActionsHtml}</div></div>`;
+        }
+
+        // 7. مونتاژ نهایی کل ردیف (چک‌باکس در سمت راست قرار داده شد)
         li.innerHTML = `
             <div class="item-main-row">
                 ${leftSectionHtml}
-                <div class="item-actions">
-                    ${addSubtaskBtnHtml}
-                    ${focusBtnHtml}
-                    ${editBtnHtml}
-                    <button type="button" class="action-btn spoiler-btn ${blurred ? 'active' : ''}" onclick="dispatchItemAction('${groupKey}', 'toggleSpoiler', '${item.id}')" title="Toggle Spoiler">
-                        ${blurred ? '👾' : '👁️'}
-                    </button>
-                    ${convertBtnHtml}
-                    <button type="button" class="action-btn delete-btn" onclick="dispatchItemAction('${groupKey}', 'delete', '${item.id}')" title="Move to Recycle Bin">×</button>
+                <div class="actions-container">
+                    ${checkboxHtml}
                 </div>
             </div>
-            ${timeProgressSectionHtml}
+            ${metaRowHtml}
             ${subtasksSectionHtml}
         `;
 
@@ -1636,6 +1709,18 @@ const setupEvents = () => {
             formEl.addEventListener('submit', (e) => handleAddItem(groupKey, e));
         }
     });
+
+    // --- Mobile SPA View Switcher ---
+    if (DOM.mobileNavBtn) {
+        DOM.mobileNavBtn.addEventListener('click', () => {
+            DOM.body.classList.toggle('show-tasks-view');
+            
+            const isTaskView = DOM.body.classList.contains('show-tasks-view');
+            if (DOM.mobileNavText) {
+                DOM.mobileNavText.textContent = isTaskView ? '↑ Jump to Timer' : '↓ Move to Task Dashboard';
+            }
+        });
+    }
 
     // Export Daily Report Image (PNG)
     if (DOM.btnExportReport) {

@@ -1,4 +1,6 @@
-/* --- CSS Variables & Resets --- */
+/* =========================================
+   1. CSS VARIABLES & RESET
+   ========================================= */
 :root {
     --bg-dark: #0a0a0a;
     --text-main: #f3f4f6;
@@ -22,30 +24,13 @@ body {
     position: relative;
 }
 
-/* --- Ambient Glow (Gemini Style Background) --- */
-.ambient-glow {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(120px);
-    z-index: -1;
-    opacity: 0.6;
-    transition: all 1s ease;
-}
-.glow-blue {
-    top: -10%; left: -10%;
-    width: 60vw; height: 60vh;
-    background: radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%);
-}
-.glow-purple {
-    bottom: -10%; right: -10%;
-    width: 60vw; height: 60vh;
-    background: radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%);
-}
-/* Visual Alert State - Turns reddish during rest */
-body.rest-mode .glow-blue { background: radial-gradient(circle, rgba(236,72,153,0.3) 0%, transparent 70%); }
-body.rest-mode .glow-purple { background: radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%); }
+h2, h3 { margin-bottom: 16px; font-weight: 500; }
+.hidden { display: none !important; }
+.desktop-hidden { display: none; }
 
-/* --- Layout --- */
+/* =========================================
+   2. CORE LAYOUT & BACKGROUNDS
+   ========================================= */
 .app-container {
     display: flex;
     gap: 24px;
@@ -62,9 +47,38 @@ body.rest-mode .glow-purple { background: radial-gradient(circle, rgba(168,85,24
     gap: 24px;
 }
 
-.sidebar { width: 400px; display: flex; flex-direction: column; }
+.sidebar { 
+    width: 400px; 
+    display: flex; 
+    flex-direction: column; 
+}
 
-/* --- UI Components --- */
+/* Ambient Glow */
+.ambient-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: -1;
+    opacity: 0.6;
+    transition: all 1s ease;
+}
+
+.glow-blue {
+    top: -10%; left: -10%;
+    width: 60vw; height: 60vh;
+    background: radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%);
+}
+
+.glow-purple {
+    bottom: -10%; right: -10%;
+    width: 60vw; height: 60vh;
+    background: radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%);
+}
+
+/* Visual Alert State - Rest Mode */
+body.rest-mode .glow-blue { background: radial-gradient(circle, rgba(236,72,153,0.3) 0%, transparent 70%); }
+body.rest-mode .glow-purple { background: radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%); }
+
 .glass-panel {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
@@ -73,296 +87,9 @@ body.rest-mode .glow-purple { background: radial-gradient(circle, rgba(168,85,24
     backdrop-filter: blur(16px);
 }
 
-h2, h3 { margin-bottom: 16px; font-weight: 500; }
-
-.hidden { display: none !important; }
-
-/* --- Timer Centerpiece (Orbital UI) --- */
-.timer-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding-top: 10px;
-    transition: all 0.3s ease;
-}
-
-/* Mode Tabs (Focus / Rest) */
-.timer-mode-tabs {
-    display: flex;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--glass-border);
-    padding: 6px;
-    border-radius: 999px;
-    margin-bottom: 24px;
-    transition: opacity 0.3s ease;
-}
-
-.mode-tab {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    padding: 6px 16px;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.mode-tab.active {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-main);
-}
-
-/* Setup Prompt (Persian Question) */
-.setup-prompt {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 24px;
-    transition: opacity 0.3s ease, height 0.3s ease, margin 0.3s ease;
-}
-
-/* Active Task Banner */
-.active-task-banner {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--glass-border);
-    padding: 8px 16px;
-    border-radius: 999px;
-    margin-bottom: 24px;
-    max-width: 90%;
-    font-size: 0.85rem;
-    transition: all 0.3s ease;
-    opacity: 0;
-    pointer-events: none;
-    height: 0;
-    overflow: hidden;
-}
-
-.active-task-banner.has-active {
-    opacity: 1;
-    pointer-events: auto;
-    height: auto;
-    background: rgba(59, 130, 246, 0.12);
-    border-color: rgba(59, 130, 246, 0.4);
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
-}
-
-.active-task-label { color: var(--text-muted); font-weight: 500; white-space: nowrap; }
-.active-task-name { color: var(--text-main); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
-.active-task-time { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
-.active-task-clear { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; padding: 0 2px; }
-.active-task-clear:hover { color: #ef4444; }
-
-/* Orbital Slider (SVG) Container */
-.orbital-slider-container {
-    position: relative;
-    width: 300px;
-    height: 300px;
-    margin-bottom: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    /* Disable timer selection */
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-.orbital-svg {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    overflow: visible;
-}
-
-.orbital-track {
-    fill: transparent;
-    stroke: rgba(255, 255, 255, 0.05);
-    stroke-width: 12;
-}
-
-.orbital-arc {
-    fill: transparent;
-    stroke-width: 12;
-    stroke-linecap: round;
-    /* transition will be applied dynamically in JS for smooth ticking, but disabled during drag */
-}
-
-.orbital-dot {
-    fill: #ffffff;
-    cursor: grab;
-}
-.orbital-dot:active { cursor: grabbing; }
-
-/* Center Display */
-.timer-center-content {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 2;
-}
-
-.time-display-wrapper {
-    position: relative;
-    cursor: text;
-    padding: 0 10px;
-}
-
-.time-text {
-    font-size: 4.5rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: var(--text-main);
-    line-height: 1;
-}
-
-/* Hidden Input for Desktop Typing */
-.time-edit-input {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    border: none;
-    color: transparent; /* Text matches exact position, but we hide standard rendering to show time-text */
-    text-align: center;
-    font-size: 4.5rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    outline: none;
-    caret-color: var(--accent-blue);
-    z-index: 10;
-}
-.time-edit-input:focus {
-    color: var(--text-main);
-    background: var(--bg-dark); /* Covers the original text */
-    border-radius: 12px;
-}
-
-.timer-hint {
-    font-size: 0.85rem;
-    font-weight: 500;
-    margin-top: 8px;
-    text-align: center;
-}
-.setup-hint { color: var(--text-muted); }
-.active-hint { color: var(--accent-blue); }
-
-/* Bottom Action Buttons */
-/* Bottom Action Buttons */
-.timer-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    width: 100%;
-}
-
-.active-btns-row {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 8px; /* فاصله بین دکمه‌های اصلی و لینک کنسل */
-}
-
-.btn-large {
-    padding: 14px 32px;
-    font-size: 1.05rem;
-    border-radius: 100px;
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
-}
-
-/* استایل دکمه Pause */
-.primary-outline {
-    background: rgba(59, 130, 246, 0.15); /* کمی پررنگ‌تر از قبل برای خوانایی بهتر */
-    color: #60a5fa;
-    border: 1px solid rgba(59, 130, 246, 0.5);
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
-    padding: 10px 24px;
-    border-radius: 100px;
-    font-weight: 600;
-}
-.primary-outline:hover {
-    background: rgba(59, 130, 246, 0.25);
-}
-
-/* استایل دکمه Reset */
-#btn-reset.secondary {
-    background: rgba(255, 255, 255, 0.05); /* پس‌زمینه تیره مطابق تصویر */
-    color: var(--text-main);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 10px 24px;
-    border-radius: 100px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-#btn-reset.secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-/* لینک‌های متنی (Cancel و Cancel session) */
-.btn-text {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-size: 0.85rem; /* کمی کوچک‌تر برای ظرافت بیشتر */
-    font-weight: 500;
-    text-decoration: underline;
-    text-decoration-color: rgba(156, 163, 175, 0.4); /* زیرخط محو */
-    text-underline-offset: 4px; /* فاصله زیرخط از متن */
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.btn-text:hover { 
-    color: var(--text-main); 
-    text-decoration-color: var(--text-main); 
-}
-.danger-text {
-    /* در حالت عادی رنگ خنثی دارد، در حالت hover قرمز می‌شود */
-    transition: color 0.2s ease, text-decoration-color 0.2s ease;
-}
-.danger-text:hover { 
-    color: #ef4444; 
-    text-decoration-color: #ef4444; 
-}
-
-/* --- Mode Switching Logic (Setup vs Active) --- */
-.timer-section.setup-mode .active-actions,
-.timer-section.setup-mode .active-hint {
-    display: none !important;
-}
-
-.timer-section.active-mode .setup-actions,
-.timer-section.active-mode .setup-hint {
-    display: none !important;
-}
-
-.timer-section.active-mode .setup-prompt {
-    opacity: 0;
-    pointer-events: none;
-    height: 0;
-    margin: 0;
-    overflow: hidden;
-}
-
-.timer-section.active-mode .timer-mode-tabs {
-    /* opacity: 0.3; */
-    pointer-events: none;
-}
-
-.timer-section.active-mode .orbital-dot {
-    cursor: default;
-    pointer-events: none; /* Disable dragging while active */
-}
-
-/* --- Buttons & Inputs --- */
+/* =========================================
+   3. GLOBAL COMPONENTS (BUTTONS & INPUTS)
+   ========================================= */
 .btn {
     padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer;
     font-weight: 600; transition: all 0.2s;
@@ -371,7 +98,52 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
 .btn.primary:hover { background: #2563eb; }
 .btn.secondary { background: var(--glass-bg); color: white; border: 1px solid var(--glass-border); }
 .btn.secondary:hover { background: rgba(255,255,255,0.1); }
+.btn-sm { padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; }
 
+/* SVG Action Buttons */
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 6px;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+.action-btn:hover { background: rgba(255, 255, 255, 0.15); color: var(--text-main); }
+.delete-btn:hover { color: #ef4444; }
+
+/* Primary Task Action (Target Icon) */
+.primary-action {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 8px;
+}
+.primary-action.active, .primary-action:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--accent-blue);
+}
+
+/* Global Navbar Buttons */
+.minimal-toolbar {
+    display: flex; justify-content: space-between; align-items: center; 
+    width: 100%; gap: 12px; margin-bottom: 8px;
+}
+.nav-action-btn {
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; color: var(--text-muted);
+    font-size: 0.85rem; font-weight: 500; gap: 6px; cursor: pointer; transition: color 0.2s;
+}
+.nav-action-btn:hover, .nav-action-btn:active { color: var(--text-main); }
+.nav-action-btn .badge-minimal {
+    background: rgba(255, 255, 255, 0.15); padding: 2px 8px;
+    border-radius: 6px; font-weight: 600; font-size: 0.75rem; color: white;
+}
+
+/* Inputs */
 .input-group { display: flex; gap: 8px; margin-bottom: 14px; }
 .input-group input[type="text"] {
     flex: 1; min-width: 0; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--glass-border);
@@ -380,927 +152,436 @@ h2, h3 { margin-bottom: 16px; font-weight: 500; }
 .input-group input:focus { border-color: var(--accent-purple); }
 
 .time-assign-input {
-    width: 68px;
-    padding: 10px 8px;
-    border-radius: 10px;
-    border: 1px solid var(--glass-border);
-    background: rgba(0,0,0,0.2);
-    color: white;
-    outline: none;
-    text-align: center;
-    font-size: 0.85rem;
+    width: 68px; padding: 10px 8px; border-radius: 10px; border: 1px solid var(--glass-border);
+    background: rgba(0,0,0,0.2); color: white; outline: none; text-align: center; font-size: 0.85rem;
 }
 
-/* --- Folder Filter Pills Bar ([ All ] [ 📁 ... ] [ + ]) --- */
+/* =========================================
+   4. TIMER & ORBITAL UI
+   ========================================= */
+.timer-section {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding-top: 10px; transition: all 0.3s ease;
+}
+
+.timer-mode-tabs {
+    display: flex; gap: 8px; background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border); padding: 6px; border-radius: 999px; margin-bottom: 24px;
+}
+.mode-tab {
+    background: transparent; border: none; color: var(--text-muted); padding: 6px 16px;
+    border-radius: 999px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+}
+.mode-tab.active { background: rgba(255, 255, 255, 0.1); color: var(--text-main); }
+
+.setup-prompt { font-size: 1.25rem; font-weight: 600; margin-bottom: 24px; transition: all 0.3s ease; }
+
+/* Active Task Banner */
+.active-task-banner {
+    display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border); padding: 8px 16px; border-radius: 999px;
+    margin-bottom: 24px; max-width: 90%; font-size: 0.85rem; transition: all 0.3s ease;
+    opacity: 0; pointer-events: none; height: 0; overflow: hidden;
+}
+.active-task-banner.has-active {
+    opacity: 1; pointer-events: auto; height: auto; background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+}
+.active-task-label { color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+.active-task-name { color: var(--text-main); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
+.active-task-time { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
+.active-task-clear { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; padding: 0 2px; }
+.active-task-clear:hover { color: #ef4444; }
+
+/* Orbital Slider */
+.orbital-slider-container {
+    position: relative; width: 300px; height: 300px; margin-bottom: 30px;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-user-select: none; user-select: none; touch-action: none;
+}
+.orbital-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: visible; }
+.orbital-track { fill: transparent; stroke: rgba(255, 255, 255, 0.05); stroke-width: 12; }
+.orbital-arc { fill: transparent; stroke-width: 12; stroke-linecap: round; }
+.orbital-dot { fill: #ffffff; cursor: grab; }
+.orbital-dot:active { cursor: grabbing; }
+
+/* Center Timer Display */
+.timer-center-content { position: relative; display: flex; flex-direction: column; align-items: center; z-index: 2; }
+.time-display-wrapper { position: relative; cursor: text; padding: 0 10px; }
+.time-text { font-size: 4.5rem; font-weight: 700; letter-spacing: 2px; color: var(--text-main); line-height: 1; }
+.time-edit-input {
+    position: absolute; inset: 0; width: 100%; height: 100%; background: transparent;
+    border: none; color: transparent; text-align: center; font-size: 4.5rem; font-weight: 700;
+    letter-spacing: 2px; outline: none; caret-color: var(--accent-blue); z-index: 10;
+}
+.time-edit-input:focus { color: var(--text-main); background: var(--bg-dark); border-radius: 12px; }
+.timer-hint { font-size: 0.85rem; font-weight: 500; margin-top: 8px; text-align: center; }
+.setup-hint { color: var(--text-muted); }
+.active-hint { color: var(--accent-blue); }
+
+/* Timer Actions Row */
+.timer-actions { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; }
+.active-btns-row { display: flex; gap: 12px; margin-bottom: 8px; }
+.btn-large { padding: 14px 32px; font-size: 1.05rem; border-radius: 100px; box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25); }
+
+.primary-outline {
+    background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.15); padding: 10px 24px; border-radius: 100px; font-weight: 600; cursor: pointer;
+}
+.primary-outline:hover { background: rgba(59, 130, 246, 0.25); }
+
+#btn-reset.secondary {
+    background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 24px; border-radius: 100px; font-weight: 600; transition: all 0.2s ease; cursor: pointer;
+}
+#btn-reset.secondary:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+
+.btn-text {
+    background: transparent; border: none; color: var(--text-muted); font-size: 0.85rem;
+    font-weight: 500; text-decoration: underline; text-decoration-color: rgba(156, 163, 175, 0.4);
+    text-underline-offset: 4px; cursor: pointer; transition: all 0.2s ease;
+}
+.btn-text:hover { color: var(--text-main); text-decoration-color: var(--text-main); }
+.danger-text { transition: color 0.2s ease, text-decoration-color 0.2s ease; }
+.danger-text:hover { color: #ef4444; text-decoration-color: #ef4444; }
+
+/* Mode Switching Logic */
+.timer-section.setup-mode .active-actions, .timer-section.setup-mode .active-hint { display: none !important; }
+.timer-section.active-mode .setup-actions, .timer-section.active-mode .setup-hint { display: none !important; }
+.timer-section.active-mode .setup-prompt { opacity: 0; pointer-events: none; height: 0; margin: 0; overflow: hidden; }
+.timer-section.active-mode .timer-mode-tabs { pointer-events: none; }
+.timer-section.active-mode .orbital-dot { cursor: default; pointer-events: none; }
+
+/* --- Dual Date Display --- */
+.mode-info { display: flex; flex-direction: column; gap: 4px; }
+.mode-info h2 { margin-bottom: 2px; }
+.date-container { display: flex; flex-direction: column; gap: 2px; }
+.date-text { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.3px; }
+#date-shamsi { direction: rtl; text-align: left; font-weight: 500; color: var(--text-main); opacity: 0.85; }
+
+/* =========================================
+   5. TASK DASHBOARD & SIDEBAR
+   ========================================= */
+
+/* Folder Tabs Bar */
 .folder-tabs-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+    display: flex; align-items: center; gap: 6px; overflow-x: auto; overflow-y: hidden;
+    padding-bottom: 8px; margin-bottom: 12px; scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; scrollbar-width: thin;
     scrollbar-color: rgba(139, 92, 246, 0.4) rgba(255, 255, 255, 0.03);
 }
-.folder-tabs-bar::-webkit-scrollbar {
-    height: 5px;
-}
-.folder-tabs-bar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 10px;
-}
-.folder-tabs-bar::-webkit-scrollbar-thumb {
-    background: rgba(139, 92, 246, 0.45);
-    border-radius: 10px;
-}
-
-.folder-tabs-bar::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-purple);
-}
+.folder-tabs-bar::-webkit-scrollbar { height: 5px; }
+.folder-tabs-bar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); border-radius: 10px; }
+.folder-tabs-bar::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.45); border-radius: 10px; }
+.folder-tabs-bar::-webkit-scrollbar-thumb:hover { background: var(--accent-purple); }
 
 .folder-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 11px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 500;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--glass-border);
-    color: var(--text-muted);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s ease;
-    user-select: none;
+    display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px;
+    border-radius: 999px; font-size: 0.78rem; font-weight: 500;
+    background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: all 0.2s ease; user-select: none;
 }
-
-.folder-pill:hover {
-    background: rgba(255, 255, 255, 0.09);
-    color: var(--text-main);
-}
-
+.folder-pill:hover { background: rgba(255, 255, 255, 0.09); color: var(--text-main); }
 .folder-pill.active {
-    background: rgba(59, 130, 246, 0.18);
-    border-color: var(--accent-blue);
-    color: var(--text-main);
-    box-shadow: 0 0 12px rgba(59, 130, 246, 0.18);
+    background: rgba(59, 130, 246, 0.18); border-color: var(--accent-blue);
+    color: var(--text-main); box-shadow: 0 0 12px rgba(59, 130, 246, 0.18);
 }
-
-.folder-pill-count {
-    font-size: 0.68rem;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 1px 6px;
-    border-radius: 999px;
-    color: #d1d5db;
-}
-
-.folder-pill-add {
-    padding: 5px 10px;
-    font-weight: 700;
-    color: var(--accent-purple);
-    border-style: dashed;
-}
-.folder-pill-add:hover {
-    border-color: var(--accent-purple);
-    background: rgba(139, 92, 246, 0.15);
-}
+.folder-pill-count { font-size: 0.68rem; background: rgba(255, 255, 255, 0.1); padding: 1px 6px; border-radius: 999px; color: #d1d5db; }
+.folder-pill-add { padding: 5px 10px; font-weight: 700; color: var(--accent-purple); border-style: dashed; }
+.folder-pill-add:hover { border-color: var(--accent-purple); background: rgba(139, 92, 246, 0.15); }
 
 .new-folder-form {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 12px;
-    background: rgba(139, 92, 246, 0.08);
-    border: 1px solid rgba(139, 92, 246, 0.35);
-    padding: 6px 10px;
-    border-radius: 10px;
+    display: flex; align-items: center; gap: 6px; margin-bottom: 12px;
+    background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.35); padding: 6px 10px; border-radius: 10px;
 }
+.new-folder-form input { flex: 1; min-width: 0; background: transparent; border: none; color: white; font-size: 0.85rem; outline: none; }
 
-.new-folder-form input {
-    flex: 1;
-    min-width: 0;
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 0.85rem;
-    outline: none;
+/* Integrated Add Task Input Group */
+.integrated-input-group { 
+    display: flex; align-items: center; 
+    background: rgba(255, 255, 255, 0.08); 
+    border: 1px solid rgba(255, 255, 255, 0.12); 
+    border-radius: 14px; padding: 5px; margin-bottom: 18px; 
+    transition: border-color 0.2s, background 0.2s; 
 }
+.integrated-input-group:focus-within { border-color: var(--accent-blue); background: rgba(0,0,0,0.2); }
+.integrated-input-group input[type="text"] { flex: 1; background: transparent; border: none; color: white; padding: 8px 12px; outline: none; font-size: 0.95rem; min-width: 0; }
+.time-input-wrapper { display: flex; align-items: center; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 0 10px; gap: 4px; margin-right: 6px; }
+.clock-icon { font-size: 0.85rem; opacity: 0.6; }
+.minimal-time-input { width: 45px; background: transparent; border: none; color: white; outline: none; font-size: 0.9rem; text-align: center; }
+.btn-integrated-submit { background: var(--accent-blue); color: white; border: none; border-radius: 10px; width: 36px; height: 36px; font-weight: bold; cursor: pointer; transition: background 0.2s, transform 0.1s; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+.btn-integrated-submit:active { transform: scale(0.92); }
 
-/* --- Lists (Works & Thoughts) --- */
-.thoughts-section { height: 250px; display: flex; flex-direction: column; }
+/* Task Item List */
 .item-list { list-style: none; overflow-y: auto; flex: 1; padding-right: 6px; }
 .item-list::-webkit-scrollbar { width: 6px; }
 .item-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+.thoughts-section { height: 250px; display: flex; flex-direction: column; }
 
-.list-item {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px;
-    background: rgba(0,0,0,0.22);
-    border-radius: 12px;
-    margin-bottom: 8px;
-    border: 1px solid transparent;
-    transition: border 0.2s, background 0.2s, box-shadow 0.2s;
+/* Clean List Base (No Boxes) */
+.clean-list .list-item { 
+    background: transparent; border: none; border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important; 
+    border-radius: 0; padding: 14px 4px; margin-bottom: 0; box-shadow: none; transition: background 0.2s; 
 }
-.list-item:hover { border-color: var(--glass-border); }
-
-/* Folder Header Styling inside Works List */
-/* Folder Header Styling inside Works List */
-.list-item.folder-item {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    padding: 12px 14px;
-}
-
-.folder-title-trigger {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    flex: 1;
-    min-width: 120px; /* Guarantees room so folder name never squishes vertically */
-    user-select: none;
-    padding: 2px 0;
-}
-
-.folder-icon-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.78rem;
-    background: rgba(139, 92, 246, 0.2);
-    border: 1px solid rgba(139, 92, 246, 0.4);
-    color: #ddd6fe;
-    padding: 3px 7px;
-    border-radius: 7px;
-    flex-shrink: 0;
-    transition: background 0.2s, transform 0.15s;
-}
-
-.folder-title-trigger:hover .folder-icon-badge {
-    background: rgba(139, 92, 246, 0.35);
-}
-
-.folder-chevron {
-    font-size: 0.72rem;
-    transition: transform 0.2s ease;
-    display: inline-block;
-}
-.folder-chevron.collapsed {
-    transform: rotate(-90deg);
-}
-
-.folder-title-text {
-    font-weight: 600;
-    color: #f9fafb;
-    font-size: 0.95rem;
-    line-height: 1.35;
-    white-space: normal;
-    word-break: normal; /* Prevents breaking short words like 'majed' in half */
-    overflow-wrap: break-word;
-    flex: 1;
-}
-
-.folder-subcount {
-    font-size: 0.72rem;
-    color: #c4b5fd;
-    background: rgba(139, 92, 246, 0.15);
-    border: 1px solid rgba(139, 92, 246, 0.25);
-    padding: 1px 7px;
-    border-radius: 999px;
-    flex-shrink: 0;
-    font-weight: 600;
-}
+.clean-list .list-item:last-child { border-bottom: none !important; }
+.clean-list .list-item:hover { background: rgba(255, 255, 255, 0.02); }
 
 .item-main-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap; /* Allows clean wrapping on narrow screens instead of crushing text */
-    width: 100%;
-    gap: 8px;
+    display: flex; flex-wrap: nowrap !important; align-items: center;
+    justify-content: space-between; width: 100%; gap: 8px;
 }
-
 .item-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1 1 170px; /* Ensures title always gets at least 170px before actions wrap */
-    min-width: 0;
+    display: flex; align-items: center; gap: 8px; flex: 1;
+    min-width: 0 !important; overflow: hidden;
 }
 
-.item-actions {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-    margin-left: auto;
+/* Custom Checkboxes */
+.checkbox-container {
+    display: flex; align-items: center; gap: 8px; margin: 0; padding: 0;
+    flex: 1; min-width: 0 !important; overflow: hidden;
+}
+.checkbox-container input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none; width: 18px; height: 18px;
+    border: 1.5px solid rgba(255, 255, 255, 0.4); border-radius: 4px;
+    background: transparent; cursor: pointer; position: relative; transition: all 0.2s ease; margin-right: 0; flex-shrink: 0;
+}
+.checkbox-container input[type="checkbox"]:checked { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.7); }
+.checkbox-container input[type="checkbox"]:checked::after {
+    content: ''; position: absolute; left: 5px; top: 2px; width: 4px; height: 8px;
+    border: solid rgba(255, 255, 255, 0.9); border-width: 0 2px 2px 0; transform: rotate(45deg);
 }
 
+/* Text Truncation */
 .task-text {
+    white-space: nowrap !important; overflow: hidden !important;
+    text-overflow: ellipsis !important; display: block; width: 100%;
     transition: filter 0.25s ease, opacity 0.25s ease;
-    word-break: normal;
-    overflow-wrap: break-word;
-    line-height: 1.4;
 }
 
-/* Sub-tasks Container & Items */
-.subtasks-container {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 4px;
-    padding-top: 8px;
-    padding-left: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    border-left: 2px solid rgba(139, 92, 246, 0.35);
+/* Completions & Spoilers */
+.clean-list .list-item.completed, .clean-list .subtask-item.completed { opacity: 0.35; background: transparent; }
+.clean-list .list-item.completed .task-text, .clean-list .subtask-item.completed .task-text { text-decoration: none; color: inherit; }
+.spoiler-text { filter: blur(6px); user-select: none; opacity: 0.75; }
+
+/* Active Focused Task Highlights */
+.list-item.active-focus-task, .subtask-item.active-focus-task {
+    border-color: rgba(59, 130, 246, 0.6); background: rgba(59, 130, 246, 0.09) !important;
 }
 
-.subtask-item {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 8px 10px;
-    background: rgba(0, 0, 0, 0.35);
-    border-radius: 9px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    transition: border 0.2s, background 0.2s;
-}
-
-.subtask-item:hover {
-    border-color: rgba(255, 255, 255, 0.12);
-}
-
-.subtask-item.completed .task-text {
-    text-decoration: line-through;
-    color: var(--text-muted);
-}
-
-.list-item.active-focus-task,
-.subtask-item.active-focus-task {
-    border-color: rgba(59, 130, 246, 0.6);
-    background: rgba(59, 130, 246, 0.09);
-    box-shadow: 0 0 16px rgba(59, 130, 246, 0.14);
-}
-
-/* Quick Add Sub-task Inline Form inside Folder */
-.subtask-add-form {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 2px;
-}
-
-.subtask-add-input {
-    flex: 1;
-    min-width: 0;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--glass-border);
-    color: white;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 0.82rem;
-    outline: none;
-}
-.subtask-add-input:focus { border-color: var(--accent-blue); }
-
-.subtask-time-input {
-    width: 54px;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--glass-border);
-    color: white;
-    padding: 6px;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    text-align: center;
-    outline: none;
-}
-
-.subtask-add-btn {
-    padding: 5px 10px;
-    font-size: 0.85rem;
-    border-radius: 8px;
-}
-
-.item-main-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    gap: 8px;
-}
-
-.list-item.completed > .item-main-row .task-text { text-decoration: line-through; color: var(--text-muted); }
-
-.item-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
-.action-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.96rem; padding: 2px 4px; transition: color 0.15s, transform 0.15s; }
-.action-btn:hover { color: white; }
-.focus-btn.active { color: var(--accent-blue); transform: scale(1.15); }
-.focus-btn:hover { color: var(--accent-blue); }
-.subtask-trigger-btn:hover { color: var(--success-green); }
-.edit-btn:hover { color: #fbbf24; }
-.convert-btn:hover { color: var(--accent-purple); }
-.delete-btn:hover { color: #ef4444; }
-
-/* Custom Checkbox */
-.checkbox-container { display: flex; align-items: center; gap: 9px; cursor: pointer; flex: 1; min-width: 0; }
-.checkbox-container input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--accent-blue); flex-shrink: 0; }
-
-/* --- Inline Task Edit Mode --- */
-.inline-edit-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-}
-
-.inline-edit-input {
-    flex: 1;
-    min-width: 0;
-    background: rgba(0, 0, 0, 0.45);
-    border: 1px solid var(--accent-blue);
-    color: var(--text-main);
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 0.88rem;
-    outline: none;
-}
-
-.inline-edit-time {
-    width: 58px;
-    background: rgba(0, 0, 0, 0.45);
-    border: 1px solid var(--accent-purple);
-    color: var(--text-main);
-    padding: 6px;
-    border-radius: 8px;
-    font-size: 0.82rem;
-    text-align: center;
-    outline: none;
-}
-
-.save-edit-btn { color: var(--success-green); font-weight: bold; }
-.cancel-edit-btn { color: #ef4444; }
-
-/* --- Task Time Allocation & Progress Bar --- */
-.task-time-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    width: 100%;
-    padding-left: 24px;
-}
-
-.subtask-item .task-time-meta {
-    padding-left: 22px;
-}
-
-.task-time-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.73rem;
-    color: var(--text-muted);
-}
-
-.time-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--glass-border);
-    padding: 2px 8px;
-    border-radius: 6px;
-    color: #d1d5db;
-    font-weight: 500;
-}
-
-.time-remaining-text {
-    font-size: 0.71rem;
-    color: var(--accent-purple);
-}
-
-.task-progress-track {
-    width: 100%;
-    height: 5px;
-    background: rgba(255, 255, 255, 0.07);
-    border-radius: 999px;
-    overflow: hidden;
-}
-
-.task-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
-    border-radius: 999px;
-    transition: width 0.35s ease;
-}
-
-.task-progress-fill.completed-bar {
-    background: linear-gradient(90deg, var(--success-green), #34d399);
-}
-
-/* --- Spoiler & Screenshot Privacy Mode --- */
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-}
-
-.section-header h3 {
-    margin-bottom: 0;
-}
-
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 0.8rem;
-    border-radius: 8px;
-}
-
-.btn-sm.active {
-    background: rgba(139, 92, 246, 0.25);
-    border-color: var(--accent-purple);
-    color: var(--text-main);
-}
-
-/* Blur effect for censored tasks */
-.spoiler-text {
-    filter: blur(6px);
-    user-select: none;
-    transition: filter 0.25s ease, opacity 0.25s ease;
-    opacity: 0.75;
-}
-
-.task-text {
-    transition: filter 0.25s ease, opacity 0.25s ease;
-    word-break: break-word;
-}
-
-.spoiler-btn.active {
-    color: var(--accent-purple);
-}
-
-/* --- Dual Date Display (Shamsi & Gregorian) --- */
-.mode-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.mode-info h2 {
-    margin-bottom: 2px;
-}
-
-.date-container {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.date-text {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    letter-spacing: 0.3px;
-}
-
-#date-shamsi {
-    direction: rtl;
-    text-align: left;
-    font-weight: 500;
-    color: var(--text-main);
-    opacity: 0.85;
-}
-
-/* --- Drag & Drop Tasks Reordering Styles --- */
-.item-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    min-width: 0;
-}
-
+/* Drag & Drop Reordering */
 .drag-handle {
-    cursor: grab;
-    color: var(--text-muted);
-    font-size: 1.1rem;
-    user-select: none;
-    line-height: 1;
-    padding: 2px 3px;
-    opacity: 0.5;
-    transition: opacity 0.2s, color 0.2s;
+    cursor: grab; color: var(--text-muted); font-size: 1.1rem; user-select: none;
+    line-height: 1; padding: 2px 3px; opacity: 0.5; transition: opacity 0.2s, color 0.2s;
 }
+.list-item:hover .drag-handle { opacity: 1; }
+.drag-handle:active { cursor: grabbing; color: var(--accent-blue); }
+.list-item.dragging { opacity: 0.35; background: rgba(139, 92, 246, 0.08); }
 
-.list-item:hover .drag-handle {
-    opacity: 1;
+/* --- Folder Structure & Tree Styles --- */
+.folder-title-trigger {
+    display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;
+    cursor: pointer; background: transparent !important; border: none !important; padding: 0 !important;
 }
+.folder-title-text { font-weight: 600; color: #f9fafb; font-size: 0.95rem; }
+.folder-icon-modern { display: flex; align-items: center; gap: 2px; color: var(--text-muted); }
+.folder-svg-icon { opacity: 0.8; }
+.folder-chevron { transition: transform 0.2s ease; }
+.folder-chevron.collapsed { transform: rotate(-90deg); }
+.folder-subcount { font-size: 0.75rem; color: var(--text-muted) !important; padding: 0 !important; background: transparent !important;}
 
-.drag-handle:active {
-    cursor: grabbing;
-    color: var(--accent-blue);
+/* Fix Folder Icon Wrapping */
+.list-item.folder-item { background: transparent !important; border: none !important; border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important; padding: 14px 4px !important; }
+.list-item.folder-item > .item-main-row { flex-direction: row !important; align-items: center !important; }
+.list-item.folder-item > .item-main-row > .item-left { width: auto !important; flex: 1 !important; }
+.list-item.folder-item > .item-main-row > .actions-container { width: auto !important; border-top: none !important; padding-top: 0 !important; justify-content: flex-end !important; }
+
+/* Subtasks & Tree Line */
+.subtasks-container {
+    border-left: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+    margin-left: 21px !important; padding-left: 16px !important;
+    display: flex; flex-direction: column; gap: 8px; margin-top: 8px;
 }
+.subtask-item { border-bottom: none !important; padding: 4px 0 !important; }
 
-.list-item.dragging {
-    opacity: 0.35;
-    border: 1px dashed var(--accent-purple);
-    background: rgba(139, 92, 246, 0.08);
+/* Actions Container & Menu */
+.actions-container { display: flex; align-items: center; gap: 6px; flex-shrink: 0; position: relative; }
+.secondary-actions-menu, .secondary-actions {
+    position: static !important; transform: none !important; background: transparent !important;
+    border: none !important; box-shadow: none !important; opacity: 0.4 !important; pointer-events: auto !important;
+    display: flex !important; align-items: center; gap: 6px; padding: 0 !important; transition: opacity 0.2s ease !important;
 }
+.list-item:hover .secondary-actions, .subtask-item:hover .secondary-actions { opacity: 1 !important; }
+.more-options-btn { display: none !important; }
 
-.list-item.drag-over-top {
-    border-top: 2px solid var(--accent-blue);
-}
+/* Bottom Meta Row (Timer & Secondary Actions) */
+.meta-row-flex { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 6px; }
+.minimal-time-meta { padding-left: 28px; margin-top: -8px; width: 100%; cursor: pointer; opacity: 0.8; transition: opacity 0.2s; }
+.subtask-item .minimal-time-meta { padding-left: 24px; }
+.minimal-time-meta:hover { opacity: 1; }
+.time-text-minimal { display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.08); padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; color: var(--text-muted); }
+.status-green { color: #10b981; font-weight: 600; margin-left: 4px; }
 
-.list-item.drag-over-bottom {
-    border-bottom: 2px solid var(--accent-blue);
-}
+/* Thin Progress Line */
+.task-progress-track-thin { width: 100%; height: 2px; background: rgba(255, 255, 255, 0.06); border-radius: 2px; overflow: hidden; }
+.task-progress-fill-thin { height: 100%; background: linear-gradient(90deg, #10b981, #34d399); transition: width 0.3s ease; }
+.task-progress-fill-thin.completed-bar { background: #10b981; }
 
-/* --- Recycle Bin & Modal Styles --- */
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+/* =========================================
+   6. MODALS & OVERLAYS
+   ========================================= */
 
-.trash-trigger {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
+/* Trash Modal */
 .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    opacity: 1;
-    transition: opacity 0.2s ease;
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 1; transition: opacity 0.2s ease;
 }
-
-.modal-overlay.hidden {
-    display: flex !important;
-    opacity: 0;
-    pointer-events: none;
-}
-
+.modal-overlay.hidden { display: flex !important; opacity: 0; pointer-events: none; }
 .modal-panel {
-    width: 90%;
-    max-width: 520px;
-    max-height: 75vh;
-    display: flex;
-    flex-direction: column;
-    background: rgba(18, 18, 18, 0.9);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    width: 90%; max-width: 520px; max-height: 75vh; display: flex; flex-direction: column;
+    background: rgba(18, 18, 18, 0.9); border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
+.trash-items { min-height: 180px; max-height: 55vh; overflow-y: auto;}
+.empty-state { text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 0.9rem; }
 
-.trash-items {
-    min-height: 180px;
-    max-height: 55vh;
-}
-
-.empty-state {
-    text-align: center;
-    color: var(--text-muted);
-    padding: 40px 0;
-    font-size: 0.9rem;
-}
-
-.origin-badge {
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 6px;
-    text-transform: uppercase;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-.origin-works {
-    background: rgba(59, 130, 246, 0.2);
-    color: var(--accent-blue);
-    border: 1px solid rgba(59, 130, 246, 0.35);
-}
-
-.origin-thoughts {
-    background: rgba(139, 92, 246, 0.2);
-    color: var(--accent-purple);
-    border: 1px solid rgba(139, 92, 246, 0.35);
-}
-
-.restore-btn:hover {
-    color: #10b981;
-}
-
-.danger-text:hover {
-    border-color: #ef4444;
-    color: #ef4444;
-}
-
-/* --- 10-Second Session Preparation Overlay --- */
+/* 10-Second Session Preparation Overlay */
 .prep-panel {
-    max-width: 500px;
-    text-align: right;
-    padding: 28px;
-    border: 1px solid rgba(139, 92, 246, 0.35);
-    box-shadow: 0 0 50px rgba(59, 130, 246, 0.2);
+    max-width: 500px; text-align: right; padding: 28px;
+    border: 1px solid rgba(139, 92, 246, 0.35); box-shadow: 0 0 50px rgba(59, 130, 246, 0.2);
     animation: breatheGlow 4s infinite ease-in-out;
 }
-
 @keyframes breatheGlow {
     0%, 100% { box-shadow: 0 0 35px rgba(59, 130, 246, 0.15); }
     50% { box-shadow: 0 0 65px rgba(139, 92, 246, 0.35); }
 }
+.prep-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.prep-badge { font-size: 0.8rem; color: var(--accent-blue); background: rgba(59, 130, 246, 0.12); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(59, 130, 246, 0.3); }
+.prep-title { font-size: 1.2rem; color: var(--text-main); margin-bottom: 18px; font-weight: 600; }
+.prep-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.prep-list li { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--glass-border); padding: 12px 14px; border-radius: 12px; font-size: 0.92rem; line-height: 1.6; color: var(--text-main); }
+.prep-footer { text-align: center; color: var(--accent-purple); font-weight: 500; font-size: 0.95rem; margin-bottom: 18px; }
+.prep-progress-track { width: 100%; height: 5px; background: rgba(255, 255, 255, 0.08); border-radius: 10px; overflow: hidden; }
+.prep-progress-bar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); transition: width 1s linear; }
 
-.prep-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.prep-badge {
-    font-size: 0.8rem;
-    color: var(--accent-blue);
-    background: rgba(59, 130, 246, 0.12);
-    padding: 4px 12px;
-    border-radius: 20px;
-    border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-.prep-title {
-    font-size: 1.2rem;
-    color: var(--text-main);
-    margin-bottom: 18px;
-    font-weight: 600;
-}
-
-.prep-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.prep-list li {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--glass-border);
-    padding: 12px 14px;
-    border-radius: 12px;
-    font-size: 0.92rem;
-    line-height: 1.6;
-    color: var(--text-main);
-}
-
-.prep-footer {
-    text-align: center;
-    color: var(--accent-purple);
-    font-weight: 500;
-    font-size: 0.95rem;
-    margin-bottom: 18px;
-}
-
-.prep-progress-track {
-    width: 100%;
-    height: 5px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.prep-progress-bar {
-    height: 100%;
-    width: 100%;
-    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
-    transition: width 1s linear;
-}
-
-/* --- Session Completion Modal Specific Styles (Gradient Border & Glass Cards) --- */
+/* End Session Specific Panel */
 .prep-panel.end-session-mode {
     max-width: 550px;
-    background: 
-        linear-gradient(#0d0d11, #0d0d11) padding-box,
-        linear-gradient(135deg, var(--accent-blue), var(--accent-purple)) border-box;
-    border: 1.5px solid transparent;
-    border-radius: 22px;
-    box-shadow: 0 15px 60px rgba(59, 130, 246, 0.22), 0 0 40px rgba(139, 92, 246, 0.18);
+    background: linear-gradient(#0d0d11, #0d0d11) padding-box, linear-gradient(135deg, var(--accent-blue), var(--accent-purple)) border-box;
+    border: 1.5px solid transparent; border-radius: 22px; box-shadow: 0 15px 60px rgba(59, 130, 246, 0.22), 0 0 40px rgba(139, 92, 246, 0.18);
 }
-
-.prep-panel.end-session-mode .prep-badge {
-    color: #e9d5ff;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.25));
-    border-color: rgba(139, 92, 246, 0.5);
-}
-
-.prep-panel.end-session-mode .prep-title {
-    text-align: center;
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 20px;
-}
-
-.prep-panel.end-session-mode .prep-list li {
-    background: linear-gradient(90deg, rgba(59, 130, 246, 0.16) 0%, rgba(255, 255, 255, 0.03) 55%, rgba(255, 255, 255, 0.02) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 14px;
-    padding: 12px 16px;
-    box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.08);
-}
-
+.prep-panel.end-session-mode .prep-title { text-align: center; font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; }
 .prep-panel.end-session-mode .prep-footer {
     background: linear-gradient(90deg, #60a5fa, #c084fc);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 700;
-    font-size: 1.02rem;
+    background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;
 }
 
 /* =========================================
-   Responsive Design (Tablet & Mobile UX)
+   7. FLOATING PILL (JUMP TO TIMER) 
    ========================================= */
-
-@media (max-width: 992px) {
-    body {
-        height: auto;
-        min-height: 100vh;
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
-
-    .ambient-glow {
-        position: fixed;
-        width: 80vw;
-        height: 50vh;
-    }
-
-    .app-container {
-        flex-direction: column;
-        height: auto;
-        padding: 16px;
-        gap: 16px;
-    }
-
-    .main-content {
-        display: contents;
-    }
-
-    .timer-section {
-        order: 1;
-        width: 100%;
-    }
-
-    .sidebar {
-        order: 2;
-        width: 100%;
-        max-height: 560px;
-    }
-
-    .thoughts-section {
-        order: 3;
-        width: 100%;
-        height: auto;
-        max-height: 400px;
-    }
-
-    .item-list {
-        max-height: 360px;
-        overflow-y: auto;
-    }
-}
-
-/* --- Fix Folder Title Vertical Squishing & Layout --- */
-.list-item.folder-item > .item-main-row {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-}
-
-.list-item.folder-item > .item-main-row > .item-left {
-    width: 100%;
-    flex: 1 1 100%;
-    min-width: 0;
-}
-
-.folder-title-trigger {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    min-width: 0;
-    cursor: pointer;
-}
-
-.folder-title-text {
-    flex: 1;
-    min-width: 0;
+.floating-glass-pill {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(40, 35, 60, 0.85); 
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(139, 92, 246, 0.4); 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 15px rgba(139, 92, 246, 0.2);
+    color: var(--text-main);
+    padding: 12px 28px;
+    border-radius: 999px;
     font-weight: 600;
     font-size: 0.95rem;
-    color: #f9fafb;
-    white-space: nowrap;         /* Prevents breaking into vertical letters */
-    overflow: hidden;
-    text-overflow: ellipsis;     /* Shows clean '...' only if extremely long */
-    word-break: keep-all;
-    overflow-wrap: normal;
+    cursor: pointer;
+    z-index: 1000;
+    transition: transform 0.2s ease, background 0.2s ease;
+    white-space: nowrap;
+    pointer-events: auto;
+}
+.floating-glass-pill:active { transform: translateX(-50%) scale(0.95); background: rgba(50, 45, 75, 0.9); }
+
+
+/* =========================================
+   8. RESPONSIVE DESIGN (MOBILE SPA & NAV)
+   ========================================= */
+@media (max-width: 992px) {
+    /* Base Body Locks (SPA Feel) */
+    body { overflow: hidden !important; height: 100vh !important; position: fixed; width: 100%; }
+    .desktop-hidden { display: flex !important; }
+
+    /* Ambient Glow Corrections */
+    .ambient-glow { position: fixed !important; z-index: -10 !important; display: block !important; }
+    .glow-blue { top: -10vh !important; left: -15vw !important; width: 80vw !important; height: 80vh !important; }
+    .glow-purple { bottom: -10vh !important; right: -15vw !important; width: 80vw !important; height: 80vh !important; }
+
+    /* Sidebar Brightness Corrections */
+    .sidebar {
+        background: linear-gradient(180deg, rgba(32, 35, 45, 0.98) 0%, rgba(18, 20, 25, 0.98) 100%) !important;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+    }
+    body.show-tasks-view .ambient-glow { opacity: 0.9 !important; filter: blur(80px) !important; }
+
+    /* Container Adjustments */
+    .app-container { padding: 0 !important; height: 100vh; position: relative; }
+    
+    /* View 1: Timer */
+    .main-content {
+        position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+        width: 100vw !important; max-width: 100vw !important; box-sizing: border-box !important;
+        padding: 16px 16px 95px 16px !important;
+        transition: opacity 0.35s ease, transform 0.35s ease; opacity: 1; transform: translateX(0); pointer-events: auto;
+        display: flex !important; flex-direction: column; overflow-y: auto;
+    }
+
+    /* View 2: Tasks Dashboard */
+    .sidebar {
+        position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+        width: 100vw !important; max-width: 100vw !important; box-sizing: border-box !important;
+        padding: 16px 16px 160px 16px !important; /* Critical: 160px padding bottom prevents overlap with nav/pill */
+        max-height: none !important;
+        transition: opacity 0.35s ease, transform 0.35s ease; opacity: 0; transform: translateX(30px); pointer-events: none;
+        display: flex !important; border: none !important;
+    }
+    .item-list { overflow-y: auto; flex: 1; padding-bottom: 30px; }
+
+    /* Mobile SPA Transitions */
+    body.show-tasks-view .main-content { opacity: 0; transform: translateX(-30px); pointer-events: none; }
+    body.show-tasks-view .sidebar { opacity: 1; transform: translateX(0); pointer-events: auto; }
+
+    /* GLOBAL NAVBAR (Glass Bottom Navbar) */
+    .global-nav-container {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        justify-content: space-between !important;
+        padding: 16px 24px 20px 24px !important; /* Padded bottom for safe-areas */
+        background: rgba(20, 22, 28, 0.75) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 20px 20px 0 0 !important;
+        z-index: 100 !important;
+        margin: 0 !important;
+    }
 }
 
-.list-item.folder-item > .item-main-row > .item-actions {
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
+/* Tiny Mobile Adjustments (< 600px) */
 @media (max-width: 600px) {
-    .app-container {
-        padding: 12px;
-        gap: 14px;
-    }
+    .glass-panel { padding: 16px; border-radius: 16px; }
+    .timer-circle { width: 220px; height: 220px; margin-bottom: 22px; }
+    .time-text { font-size: 2.8rem; }
+}
 
-    .glass-panel {
-        padding: 16px;
-        border-radius: 16px;
-    }
+@media (hover: none) {
+    /* Touch optimization for hovering */
+    .secondary-actions { opacity: 0.7 !important; pointer-events: auto; }
+}
 
-    .timer-header {
-        flex-direction: row;
-        align-items: flex-start;
-        margin-bottom: 14px;
-        gap: 8px;
-    }
-
-    .mode-info h2 {
-        font-size: 1.25rem;
-    }
-
-    .stats {
-        font-size: 0.8rem;
-        background: rgba(139, 92, 246, 0.12);
-        padding: 4px 10px;
-        border-radius: 8px;
-        border: 1px solid rgba(139, 92, 246, 0.25);
-        white-space: nowrap;
-    }
-
-    .active-task-banner {
-        width: 100%;
-        max-width: 100%;
-        justify-content: center;
-        padding: 8px 12px;
-    }
-
-    .active-task-name {
-        max-width: 150px;
-    }
-
-    .timer-circle {
-        width: 220px;
-        height: 220px;
-        margin-bottom: 22px;
-    }
-
-    .timer-inner {
-        width: 204px;
-        height: 204px;
-    }
-
-    .time-text {
-        font-size: 2.8rem;
-    }
-
-    .timer-controls {
-        width: 100%;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .timer-controls .btn {
-        flex: 1;
-        max-width: 140px;
-        padding: 12px 16px;
-        font-size: 0.95rem;
-    }
-
-    .timer-settings {
-        width: 100%;
-        justify-content: space-around;
-        padding-top: 8px;
-        border-top: 1px solid var(--glass-border);
-    }
-
-    .timer-settings input {
-        width: 56px;
-        padding: 6px;
-    }
+.single-checkbox {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding-right: 4px; /* فاصله ظریف از لبه راست */
+    transform: translateY(-5px) !important; /* این خط چک‌باکس را ۵ پیکسل به سمت بالا می‌کشد */
 }
